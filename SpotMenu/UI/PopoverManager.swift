@@ -1,14 +1,17 @@
+import AppKit
 import SwiftUI
 
 class PopoverManager {
     private var window: PopoverWindow
+    private weak var lastAnchorButton: NSStatusBarButton?
 
-    init<Content: View>(contentView: Content) {
-        self.window = PopoverWindow(rootView: contentView)
+    init<Content: View>(contentView: Content, size: CGSize) {
+        self.window = PopoverWindow(rootView: contentView, size: size)
     }
 
     func toggle(relativeTo button: NSStatusBarButton?) {
         guard let button = button else { return }
+        lastAnchorButton = button
 
         if window.isVisible {
             dismiss()
@@ -17,7 +20,28 @@ class PopoverManager {
         }
     }
 
+    func updateSize(_ size: CGSize) {
+        window.updateSize(size)
+
+        if window.isVisible, let button = lastAnchorButton {
+            positionWindow(relativeTo: button)
+        }
+    }
+
     private func show(relativeTo button: NSStatusBarButton) {
+        lastAnchorButton = button
+
+        positionWindow(relativeTo: button)
+        window.alphaValue = 0
+        window.makeKeyAndOrderFront(nil)
+
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.2
+            window.animator().alphaValue = 1
+        }
+    }
+
+    private func positionWindow(relativeTo button: NSStatusBarButton) {
         guard let buttonWindow = button.window,
             let screen = buttonWindow.screen
         else { return }
@@ -36,13 +60,6 @@ class PopoverManager {
         let popoverX = buttonFrame.midX - popoverSize.width / 2
 
         window.setFrameOrigin(NSPoint(x: popoverX, y: popoverY))
-        window.alphaValue = 0
-        window.makeKeyAndOrderFront(nil)
-
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.2
-            window.animator().alphaValue = 1
-        }
     }
 
     func dismiss() {

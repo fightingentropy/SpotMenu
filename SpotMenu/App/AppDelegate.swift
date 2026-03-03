@@ -14,6 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var preferencesWindow: NSWindow?
     var eventMonitor: Any?
     var menuBarPreferencesModelCancellable: AnyCancellable?
+    var playbackAppearanceCancellable: AnyCancellable?
     var isUsingCustomStatusView = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -48,7 +49,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             preferences: playbackAppearancePreferencesModel,
             musicPlayerPreferencesModel: musicPlayerPreferencesModel
         )
-        popoverManager = PopoverManager(contentView: playbackView)
+        popoverManager = PopoverManager(
+            contentView: playbackView,
+            size: playbackAppearancePreferencesModel.popoverSize
+        )
 
         // Global event monitor to dismiss popover
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
@@ -79,6 +83,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menuBarPreferencesModelCancellable = menuBarPreferencesModel
             .objectWillChange.sink { [weak self] _ in
                 self?.updateStatusItem()
+            }
+
+        playbackAppearanceCancellable = playbackAppearancePreferencesModel
+            .$showExpandedLibraryView
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.popoverManager.updateSize(
+                    self.playbackAppearancePreferencesModel.popoverSize
+                )
             }
     }
 

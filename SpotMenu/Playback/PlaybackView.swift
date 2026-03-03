@@ -1,4 +1,5 @@
 import AppKit
+import Foundation
 import SwiftUI
 
 struct PlaybackView: View {
@@ -6,43 +7,317 @@ struct PlaybackView: View {
     @ObservedObject var preferences: PlaybackAppearancePreferencesModel
     @ObservedObject var musicPlayerPreferencesModel: MusicPlayerPreferencesModel
     @State private var isHovering = false
+    @State private var librarySearchText = ""
     @Environment(\.colorScheme) private var systemColorScheme
 
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
-                .frame(width: 300, height: 300)
+    private var compactDimension: CGFloat { 300 }
+    private var expandedWidth: CGFloat { preferences.popoverSize.width }
+    private var expandedHeight: CGFloat { preferences.popoverSize.height }
 
-            content
-                .clipShape(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                )
+    private var filteredLibraryTracks: [LibraryTrack] {
+        let trimmedQuery = librarySearchText.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+
+        guard !trimmedQuery.isEmpty else {
+            return model.libraryTracks
         }
-        .frame(width: 300, height: 300)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+        let lowered = trimmedQuery.lowercased()
+        return model.libraryTracks.filter { track in
+            track.title.lowercased().contains(lowered)
+                || track.artist.lowercased().contains(lowered)
+                || (track.album?.lowercased().contains(lowered) ?? false)
+        }
+    }
+
+    var body: some View {
+        Group {
+            if preferences.showExpandedLibraryView {
+                expandedBody
+            } else {
+                compactBody
+            }
+        }
         .onHover { hovering in
+            guard !preferences.showExpandedLibraryView else { return }
             withAnimation(.easeInOut(duration: 0.2)) {
                 isHovering = hovering
             }
         }
+        .onAppear {
+            model.refreshLibrary()
+        }
+    }
+
+    private var compactBody: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .frame(width: compactDimension, height: compactDimension)
+
+            compactContent
+                .clipShape(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                )
+        }
+        .frame(width: compactDimension, height: compactDimension)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var expandedBody: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+
+                expandedHeroContent
+            }
+            .frame(width: expandedWidth - 20, height: compactDimension)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+            libraryContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .padding(10)
+        .frame(width: expandedWidth, height: expandedHeight)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(.ultraThinMaterial)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     @ViewBuilder
-    private var content: some View {
+    private var compactContent: some View {
         let blurRadius = isHovering ? preferences.blurIntensity * 10 : 0
         let overlayColor =
             isHovering
             ? adaptiveHoverTintColor.opacity(preferences.hoverTintOpacity)
             : nil
 
+        artworkBackground(
+            width: compactDimension,
+            height: compactDimension,
+            blurRadius: blurRadius,
+            overlayColor: overlayColor
+        )
+
+        if isHovering {
+            controlsOverlay
+        }
+    }
+
+    private var expandedHeroContent: some View {
+        let blurRadius = preferences.blurIntensity * 10
+        let overlayColor = adaptiveHoverTintColor.opacity(
+            max(preferences.hoverTintOpacity, 0.28)
+        )
+
+        return ZStack {
+            artworkBackground(
+                width: expandedWidth - 20,
+                height: compactDimension,
+                blurRadius: blurRadius,
+                overlayColor: overlayColor
+            )
+
+            controlsOverlay
+        }
+    }
+
+    private var libraryContent: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center) {
+                Text("Library")
+                    .font(.headline)
+                    .foregroundColor(preferences.foregroundColor.color)
+
+                Spacer()
+
+                Text("\(filteredLibraryTracks.count) tracks")
+                    .font(.caption)
+                    .foregroundColor(
+                        preferences.foregroundColor.color.opacity(0.75)
+                    )
+
+                Button("Play All") {
+                    model.playAllFromLibrary()
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(trackRowBackgroundColor.opacity(0.9))
+                )
+                .foregroundColor(preferences.foregroundColor.color)
+                .disabled(filteredLibraryTracks.isEmpty)
+            }
+
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(preferences.foregroundColor.color.opacity(0.7))
+                TextField("Search songs", text: $librarySearchText)
+                    .textFieldStyle(.plain)
+                    .foregroundColor(preferences.foregroundColor.color)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(trackRowBackgroundColor.opacity(0.85))
+            )
+
+            if !model.supportsLibraryBrowser {
+                Spacer()
+                Text("Library browser is available in Music Folder mode.")
+                    .font(.subheadline)
+                    .foregroundColor(preferences.foregroundColor.color.opacity(0.8))
+                    .frame(maxWidth: .infinity)
+                Spacer()
+            } else if filteredLibraryTracks.isEmpty {
+                Spacer()
+                Text(model.libraryTracks.isEmpty ? "No tracks found in folder." : "No tracks match your search.")
+                    .font(.subheadline)
+                    .foregroundColor(preferences.foregroundColor.color.opacity(0.8))
+                    .frame(maxWidth: .infinity)
+                Spacer()
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(filteredLibraryTracks) { track in
+                            trackRow(track)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.ultraThinMaterial)
+        )
+    }
+
+    private func trackRow(_ track: LibraryTrack) -> some View {
+        let isCurrentTrack = model.currentTrackID == track.id
+
+        return Button(action: {
+            model.playLibraryTrack(track)
+        }) {
+            HStack(spacing: 10) {
+                trackArtwork(for: track)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(track.title)
+                        .font(.headline)
+                        .foregroundColor(preferences.foregroundColor.color)
+                        .lineLimit(1)
+
+                    Text(trackSubtitle(for: track))
+                        .font(.subheadline)
+                        .foregroundColor(
+                            preferences.foregroundColor.color.opacity(0.8)
+                        )
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 8)
+
+                Text(
+                    formatTime(track.duration, styleMatching: max(track.duration, 1))
+                )
+                .font(.body.monospacedDigit())
+                .foregroundColor(preferences.foregroundColor.color.opacity(0.85))
+                .fixedSize(horizontal: true, vertical: false)
+
+                Image(systemName: indicatorSymbol(isCurrentTrack: isCurrentTrack))
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(preferences.foregroundColor.color)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        Circle()
+                            .fill(
+                                isCurrentTrack
+                                    ? Color.accentColor.opacity(0.55)
+                                    : trackRowBackgroundColor.opacity(0.95)
+                            )
+                    )
+            }
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        isCurrentTrack
+                            ? Color.accentColor.opacity(0.22)
+                            : trackRowBackgroundColor
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func indicatorSymbol(isCurrentTrack: Bool) -> String {
+        if isCurrentTrack {
+            return model.isPlaying ? "pause.fill" : "play.fill"
+        }
+
+        return "play.fill"
+    }
+
+    @ViewBuilder
+    private func trackArtwork(for track: LibraryTrack) -> some View {
+        if let image = track.image {
+            image
+                .resizable()
+                .scaledToFill()
+                .frame(width: 48, height: 48)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        } else {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(trackRowBackgroundColor.opacity(0.9))
+                .frame(width: 48, height: 48)
+                .overlay {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(preferences.foregroundColor.color.opacity(0.8))
+                }
+        }
+    }
+
+    private func trackSubtitle(for track: LibraryTrack) -> String {
+        if let album = track.album,
+            !album.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        {
+            return "\(track.artist) - \(album)"
+        }
+
+        return track.artist
+    }
+
+    private var trackRowBackgroundColor: Color {
+        if systemColorScheme == .dark {
+            return Color.white.opacity(0.12)
+        }
+        return Color.black.opacity(0.08)
+    }
+
+    @ViewBuilder
+    private func artworkBackground(
+        width: CGFloat,
+        height: CGFloat,
+        blurRadius: Double,
+        overlayColor: Color?
+    ) -> some View {
         if let url = model.imageURL {
             AsyncImage(url: url) { phase in
                 if case .success(let image) = phase {
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 300, height: 300)
+                        .frame(width: width, height: height)
                         .clipped()
                         .blur(radius: blurRadius)
                         .overlay(overlayColor)
@@ -52,7 +327,7 @@ struct PlaybackView: View {
             fallbackImage
                 .resizable()
                 .scaledToFill()
-                .frame(width: 300, height: 300)
+                .frame(width: width, height: height)
                 .clipped()
                 .blur(radius: blurRadius)
                 .overlay(overlayColor)
@@ -62,18 +337,12 @@ struct PlaybackView: View {
                 Image(systemName: "music.note")
                     .resizable()
                     .scaledToFit()
-                    .foregroundColor(
-                        preferences.foregroundColor.color.opacity(0.2)
-                    )
+                    .foregroundColor(preferences.foregroundColor.color.opacity(0.2))
                     .frame(width: 100, height: 100)
             }
-            .frame(width: 300, height: 300)
+            .frame(width: width, height: height)
             .blur(radius: blurRadius)
             .overlay(overlayColor)
-        }
-
-        if isHovering {
-            controlsOverlay
         }
     }
 
@@ -158,7 +427,6 @@ struct PlaybackView: View {
             Spacer(minLength: 0)
 
             HStack(alignment: .center) {
-
                 Text(
                     formatTime(
                         model.currentTime,
@@ -212,7 +480,7 @@ struct PlaybackView: View {
                             .help("Toggle like status")
                         } else {
                             Button(action: {
-                                model.toggleLiked()  // triggers login
+                                model.toggleLiked()
                             }) {
                                 Image(systemName: "heart")
                                     .renderingMode(.template)
@@ -232,15 +500,17 @@ struct PlaybackView: View {
             }
             .padding(.horizontal)
             .padding(.bottom, 16)
-
         }
         .padding(.horizontal)
         .transition(.opacity)
     }
 
     func formatTime(_ seconds: Double, styleMatching total: Double) -> String {
-        let s = Int(seconds)
-        let t = Int(total)
+        let safeSeconds = max(0, seconds)
+        let safeTotal = max(1, total)
+
+        let s = Int(safeSeconds)
+        let t = Int(safeTotal)
         let (h, m, sec) = (s / 3600, (s % 3600) / 60, s % 60)
         let (th, tm) = (t / 3600, (t % 3600) / 60)
 

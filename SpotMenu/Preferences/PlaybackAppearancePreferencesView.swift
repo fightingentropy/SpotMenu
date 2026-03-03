@@ -35,6 +35,23 @@ struct PlaybackAppearancePreferencesView: View {
 
                 Form {
                     Section {
+                        Toggle(
+                            "Expanded Library View",
+                            isOn: $model.showExpandedLibraryView
+                        )
+                    } header: {
+                        Text("Layout")
+                    } footer: {
+                        Text(
+                            "Shows a larger playback window with search and full track list."
+                        )
+                    }
+                }
+                .formStyle(.grouped)
+                .scrollContentBackground(.hidden)
+
+                Form {
+                    Section {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Text("Blur Intensity")
@@ -65,25 +82,6 @@ struct PlaybackAppearancePreferencesView: View {
                 .formStyle(.grouped)
                 .scrollContentBackground(.hidden)
 
-                Form {
-                    Section {
-                        HStack {
-                            Spacer()
-                            PlaybackView(
-                                model: playbackModel,
-                                preferences: model,
-                                musicPlayerPreferencesModel: musicPlayerPreferencesModel
-                            )
-                            Spacer()
-                        }
-                    } header: {
-                        Text("Preview")
-                    } footer: {
-                        Text("Live preview of the playback window with your current settings.")
-                    }
-                }
-                .formStyle(.grouped)
-                .scrollContentBackground(.hidden)
             }
         .frame(maxWidth: 600)
         .padding(20)

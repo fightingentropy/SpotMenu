@@ -53,6 +53,15 @@ class PlaybackAppearancePreferencesModel: ObservableObject {
         }
     }
 
+    @Published var showExpandedLibraryView: Bool {
+        didSet {
+            UserDefaults.standard.set(
+                showExpandedLibraryView,
+                forKey: "playback.showExpandedLibraryView"
+            )
+        }
+    }
+
     enum ForegroundColorOption: String, CaseIterable, Identifiable {
         case white, black
         var id: String { rawValue }
@@ -91,5 +100,15 @@ class PlaybackAppearancePreferencesModel: ObservableObject {
             ?? 0.3
         likingEnabled =
             defaults.object(forKey: "playback.likingEnabled") as? Bool ?? true
+        showExpandedLibraryView =
+            defaults.object(forKey: "playback.showExpandedLibraryView") as? Bool
+            ?? false
+    }
+
+    var popoverSize: CGSize {
+        if showExpandedLibraryView {
+            return CGSize(width: 380, height: 760)
+        }
+        return CGSize(width: 300, height: 300)
     }
 }

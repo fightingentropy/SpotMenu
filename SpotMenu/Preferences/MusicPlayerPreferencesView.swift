@@ -47,14 +47,6 @@ struct MusicPlayerPreferencesView: View {
                                 chooseMusicFolder()
                             }
 
-                            if model.musicFolderBookmarkData != nil {
-                                Button("Use ~/Music") {
-                                    folderSelectionError = nil
-                                    model.clearMusicFolderSelection()
-                                    playbackModel.fetchInfo()
-                                }
-                            }
-
                             Spacer()
 
                             Button("Reload Library") {

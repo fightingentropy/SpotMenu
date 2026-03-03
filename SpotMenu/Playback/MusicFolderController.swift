@@ -9,6 +9,8 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     private struct TrackMetadata {
         let title: String
         let artist: String
+        let album: String?
+        let duration: Double
         let image: NSImage?
     }
 
@@ -71,7 +73,8 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
             currentTime: elapsed,
             image: metadata.image.map { Image(nsImage: $0) },
             isLiked: nil,
-            longFormInfo: nil
+            longFormInfo: nil,
+            trackID: url
         )
     }
 
@@ -105,6 +108,36 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         guard let player = audioPlayer else { return }
         let clampedSeconds = min(max(seconds, 0), player.duration)
         player.currentTime = clampedSeconds
+    }
+
+    func libraryTracks() -> [LibraryTrack] {
+        refreshLibraryIfNeeded()
+
+        return trackURLs.map { url in
+            let metadata = metadata(for: url)
+            return LibraryTrack(
+                id: url,
+                title: metadata.title,
+                artist: metadata.artist,
+                album: metadata.album,
+                duration: metadata.duration,
+                image: metadata.image.map { Image(nsImage: $0) }
+            )
+        }
+    }
+
+    func playTrack(_ trackID: URL) {
+        refreshLibraryIfNeeded()
+        guard let index = trackURLs.firstIndex(of: trackID) else { return }
+        guard loadTrack(at: index) else { return }
+        audioPlayer?.play()
+    }
+
+    func playAll() {
+        refreshLibraryIfNeeded()
+        guard !trackURLs.isEmpty else { return }
+        guard loadTrack(at: 0) else { return }
+        audioPlayer?.play()
     }
 
     func openApp() {
@@ -368,9 +401,27 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
             ?? filenameMetadata.artist
             ?? "Music Folder"
 
+        let album = stringMetadata(
+            in: mergedMetadata,
+            identifiers: [.commonIdentifierAlbumName],
+            commonKeys: [.commonKeyAlbumName],
+            identifierContains: ["album"],
+            keyContains: ["talb", "album"]
+        )
+
+        let durationSeconds = CMTimeGetSeconds(asset.duration)
+        let duration = durationSeconds.isFinite && durationSeconds > 0
+            ? durationSeconds : 0
+
         let image = artworkImage(from: mergedMetadata) ?? folderArtwork(for: url)
 
-        return TrackMetadata(title: title, artist: artist, image: image)
+        return TrackMetadata(
+            title: title,
+            artist: artist,
+            album: album,
+            duration: duration,
+            image: image
+        )
     }
 
     private func allMetadataItems(for asset: AVURLAsset) -> [AVMetadataItem] {

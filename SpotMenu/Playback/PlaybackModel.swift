@@ -66,6 +66,40 @@ struct PlaybackInfo {
     let image: Image?
     let isLiked: Bool?
     let longFormInfo: LongFormInfo?
+    let trackID: URL?
+
+    init(
+        artist: String,
+        title: String,
+        isPlaying: Bool,
+        imageURL: URL?,
+        totalTime: Double,
+        currentTime: Double,
+        image: Image?,
+        isLiked: Bool?,
+        longFormInfo: LongFormInfo?,
+        trackID: URL? = nil
+    ) {
+        self.artist = artist
+        self.title = title
+        self.isPlaying = isPlaying
+        self.imageURL = imageURL
+        self.totalTime = totalTime
+        self.currentTime = currentTime
+        self.image = image
+        self.isLiked = isLiked
+        self.longFormInfo = longFormInfo
+        self.trackID = trackID
+    }
+}
+
+struct LibraryTrack: Identifiable, Equatable {
+    let id: URL
+    let title: String
+    let artist: String
+    let album: String?
+    let duration: Double
+    let image: Image?
 }
 
 protocol MusicPlayerController {
@@ -78,6 +112,15 @@ protocol MusicPlayerController {
     func toggleLiked()
     func likeTrack()
     func unlikeTrack()
+    func libraryTracks() -> [LibraryTrack]
+    func playTrack(_ trackID: URL)
+    func playAll()
+}
+
+extension MusicPlayerController {
+    func libraryTracks() -> [LibraryTrack] { [] }
+    func playTrack(_ trackID: URL) {}
+    func playAll() {}
 }
 
 class PlaybackModel: ObservableObject {
@@ -91,6 +134,8 @@ class PlaybackModel: ObservableObject {
     @Published var playerType: PlayerType
     @Published var isLiked: Bool? = nil
     @Published var longFormInfo: LongFormInfo? = nil
+    @Published var libraryTracks: [LibraryTrack] = []
+    @Published var currentTrackID: URL? = nil
 
     private let preferences: MusicPlayerPreferencesModel
     private var controller: MusicPlayerController
@@ -112,6 +157,10 @@ class PlaybackModel: ObservableObject {
         return controller is SpotifyController
     }
 
+    var supportsLibraryBrowser: Bool {
+        return playerType == .musicFolder
+    }
+
     init(preferences: MusicPlayerPreferencesModel) {
         self.preferences = preferences
 
@@ -123,6 +172,7 @@ class PlaybackModel: ObservableObject {
         self.playerType = type
 
         fetchInfo()
+        refreshLibrary()
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in
             self.fetchInfo()
         }
@@ -150,6 +200,7 @@ class PlaybackModel: ObservableObject {
         controller = newController
         playerType = newType
         fetchInfo()
+        refreshLibrary()
     }
 
     private static func selectController(
@@ -186,6 +237,8 @@ class PlaybackModel: ObservableObject {
     }
 
     func fetchInfo() {
+        refreshLibrary()
+
         guard let info = controller.fetchNowPlayingInfo() else {
             reset()
             return
@@ -203,6 +256,7 @@ class PlaybackModel: ObservableObject {
             self.image = info.image
             self.isLiked = info.isLiked
             self.longFormInfo = info.longFormInfo
+            self.currentTrackID = info.trackID
 
             NotificationCenter.default.post(
                 name: .contentModelDidUpdate,
@@ -278,6 +332,32 @@ class PlaybackModel: ObservableObject {
         controller.openApp()
     }
 
+    func refreshLibrary() {
+        if !supportsLibraryBrowser {
+            if !libraryTracks.isEmpty {
+                DispatchQueue.main.async {
+                    self.libraryTracks = []
+                }
+            }
+            return
+        }
+
+        let tracks = controller.libraryTracks()
+        DispatchQueue.main.async {
+            self.libraryTracks = tracks
+        }
+    }
+
+    func playLibraryTrack(_ track: LibraryTrack) {
+        controller.playTrack(track.id)
+        delayedFetch()
+    }
+
+    func playAllFromLibrary() {
+        controller.playAll()
+        delayedFetch()
+    }
+
     private func delayedFetch() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             self.fetchInfo()
@@ -302,6 +382,7 @@ class PlaybackModel: ObservableObject {
             self.image = nil
             self.isLiked = nil
             self.longFormInfo = nil
+            self.currentTrackID = nil
         }
     }
 

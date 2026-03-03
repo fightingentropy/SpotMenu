@@ -2,9 +2,9 @@ import Cocoa
 import SwiftUI
 
 class PopoverWindow: NSPanel {
-    init<Content: View>(rootView: Content) {
+    init<Content: View>(rootView: Content, size: CGSize) {
         let hostingView = NSHostingView(rootView: rootView)
-        let contentRect = NSRect(x: 0, y: 0, width: 300, height: 300)
+        let contentRect = NSRect(origin: .zero, size: size)
 
         super.init(
             contentRect: contentRect,
@@ -24,6 +24,13 @@ class PopoverWindow: NSPanel {
         hostingView.layer?.masksToBounds = true
 
         self.contentView = hostingView
+    }
+
+    func updateSize(_ size: CGSize) {
+        setContentSize(size)
+        var frame = self.frame
+        frame.size = size
+        setFrame(frame, display: true)
     }
 
     override var canBecomeKey: Bool {
