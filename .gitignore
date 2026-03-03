@@ -1,0 +1,14 @@
+SpotMenu.xcodeproj/xcuserdata/
+SpotMenu.xcodeproj/project.xcworkspace/xcuserdata/
+@xcworkspace/xcuserdata/@
+Pods
+Carthage
+
+xcuserdata
+.history
+
+node_modules
+website/dist/
+.DS_Store
+
+SpotMenuReleases
