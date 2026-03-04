@@ -39,38 +39,6 @@ struct AboutPreferencesView: View {
                 Divider()
                     .padding(.horizontal, 40)
 
-                // Donation Section
-                VStack(spacing: 12) {
-                    Text("Support Development")
-                        .font(.headline)
-
-                    Text("SpotMenu is free and open source.\nIf you enjoy it, consider fueling my coffee addiction\nso I can mass produce more questionable side projects.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(2)
-
-                    Button(action: {
-                        if let url = URL(string: "https://paypal.me/kmikiy") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "heart.fill")
-                                .foregroundStyle(.white)
-                            Text("Donate via PayPal")
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.purple)
-                }
-                .padding(.vertical, 8)
-
-                Divider()
-                    .padding(.horizontal, 40)
-
                 // Description
                 VStack(spacing: 8) {
                     Text("Music Folder & Apple Music in your menu bar")
@@ -150,7 +118,7 @@ struct AboutPreferencesView: View {
                 // Links
                 VStack(spacing: 12) {
                     Button(action: {
-                        if let url = URL(string: "https://github.com/kmikiy/SpotMenu") {
+                        if let url = URL(string: "https://github.com/fightingentropy/SpotMenu") {
                             NSWorkspace.shared.open(url)
                         }
                     }) {
@@ -162,7 +130,7 @@ struct AboutPreferencesView: View {
                     .buttonStyle(.link)
 
                     Button(action: {
-                        if let url = URL(string: "https://kmikiy.github.io/SpotMenu") {
+                        if let url = URL(string: "https://erlin.org") {
                             NSWorkspace.shared.open(url)
                         }
                     }) {
@@ -177,7 +145,7 @@ struct AboutPreferencesView: View {
                 Spacer()
 
                 // Copyright
-                Text("Made with love by @kmikiy")
+                Text("Made with love by @fightingentropy")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .padding(.bottom, 20)

@@ -21,7 +21,7 @@
 	<key>SUPublicEDKey</key>
 	<string>BzDKlhTkBhiTizw1GoS4Lxq7rWs7fh2vZuHz3OojDuE=</string>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/kmikiy/SpotMenu/master/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/fightingentropy/SpotMenu/main/appcast.xml</string>
 	<!-- Enable Sparkle's Installer XPC Service for sandboxed updates -->
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>

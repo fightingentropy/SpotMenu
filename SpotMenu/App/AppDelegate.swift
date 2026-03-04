@@ -77,6 +77,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             target: self
         )
 
+        configurePlaybackShortcutDefaults()
         setupKeyboardShortcuts()
         updateStatusItem()
 
@@ -108,6 +109,68 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func configurePlaybackShortcutDefaults() {
+        let defaultPlayPauseShortcut = KeyboardShortcuts.Shortcut(
+            .space,
+            modifiers: []
+        )
+        let defaultNextTrackShortcut = KeyboardShortcuts.Shortcut(
+            .rightArrow,
+            modifiers: [.command]
+        )
+        let defaultPreviousTrackShortcut = KeyboardShortcuts.Shortcut(
+            .leftArrow,
+            modifiers: [.command]
+        )
+        let legacyNextTrackShortcut = KeyboardShortcuts.Shortcut(
+            .x,
+            modifiers: []
+        )
+        let legacyPreviousTrackShortcut = KeyboardShortcuts.Shortcut(
+            .z,
+            modifiers: []
+        )
+
+        if KeyboardShortcuts.getShortcut(for: .playPause) == nil {
+            KeyboardShortcuts.setShortcut(
+                defaultPlayPauseShortcut,
+                for: .playPause
+            )
+        }
+
+        if let currentNextShortcut = KeyboardShortcuts.getShortcut(
+            for: .nextTrack
+        ) {
+            if currentNextShortcut == legacyNextTrackShortcut {
+                KeyboardShortcuts.setShortcut(
+                    defaultNextTrackShortcut,
+                    for: .nextTrack
+                )
+            }
+        } else {
+            KeyboardShortcuts.setShortcut(
+                defaultNextTrackShortcut,
+                for: .nextTrack
+            )
+        }
+
+        if let currentPreviousShortcut = KeyboardShortcuts.getShortcut(
+            for: .previousTrack
+        ) {
+            if currentPreviousShortcut == legacyPreviousTrackShortcut {
+                KeyboardShortcuts.setShortcut(
+                    defaultPreviousTrackShortcut,
+                    for: .previousTrack
+                )
+            }
+        } else {
+            KeyboardShortcuts.setShortcut(
+                defaultPreviousTrackShortcut,
+                for: .previousTrack
+            )
+        }
+    }
+
     private func setupKeyboardShortcuts() {
         KeyboardShortcuts.onKeyUp(for: .playPause) { [weak self] in
             self?.playbackModel.togglePlayPause()
@@ -116,14 +179,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.updateStatusItem()
             }
         }
-        KeyboardShortcuts.onKeyUp(for: .nextTrack) { [weak self] in
+        KeyboardShortcuts.onKeyDown(for: .nextTrack) { [weak self] in
             self?.playbackModel.skipForward()
             // Immediately update status item for keyboard shortcut feedback
             DispatchQueue.main.async {
                 self?.updateStatusItem()
             }
         }
-        KeyboardShortcuts.onKeyUp(for: .previousTrack) { [weak self] in
+        KeyboardShortcuts.onKeyDown(for: .previousTrack) { [weak self] in
             self?.playbackModel.skipBack()
             // Immediately update status item for keyboard shortcut feedback
             DispatchQueue.main.async {

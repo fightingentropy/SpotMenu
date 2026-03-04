@@ -8,7 +8,7 @@
             <sparkle:version>v521:6afce13</sparkle:version>
             <sparkle:shortVersionString>2.3.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/kmikiy/SpotMenu/releases/download/v2.3.0/SpotMenu.app.zip" length="2805927" type="application/octet-stream" sparkle:edSignature="l8y3GmErAlL/9LznAJlpXt5Cc/1nKNSuvSKkPZS91huec3ju2YbtVEZTOer/L7gp6OGKhqmAEkDmSvaXxLuuAA=="/>
+            <enclosure url="https://github.com/fightingentropy/SpotMenu/releases/download/v2.3.0/SpotMenu.app.zip" length="2805927" type="application/octet-stream" sparkle:edSignature="l8y3GmErAlL/9LznAJlpXt5Cc/1nKNSuvSKkPZS91huec3ju2YbtVEZTOer/L7gp6OGKhqmAEkDmSvaXxLuuAA=="/>
         </item>
     </channel>
 </rss>
