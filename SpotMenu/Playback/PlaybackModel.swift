@@ -100,6 +100,7 @@ protocol MusicPlayerController {
     func unlikeTrack()
     func libraryTracks() -> [LibraryTrack]
     func playTrack(_ trackID: URL)
+    func playStream(url: URL, title: String, artist: String, imageAssetName: String?)
     func playAll()
     func toggleShuffle()
     func isShuffleEnabled() -> Bool
@@ -108,6 +109,7 @@ protocol MusicPlayerController {
 extension MusicPlayerController {
     func libraryTracks() -> [LibraryTrack] { [] }
     func playTrack(_ trackID: URL) {}
+    func playStream(url: URL, title: String, artist: String, imageAssetName: String?) {}
     func playAll() {}
     func toggleShuffle() {}
     func isShuffleEnabled() -> Bool { false }
@@ -322,6 +324,21 @@ class PlaybackModel: ObservableObject {
 
     func playLibraryTrack(_ track: LibraryTrack) {
         controller.playTrack(track.id)
+        delayedFetch()
+    }
+
+    func playStream(
+        url: URL,
+        title: String,
+        artist: String = "Live Stream",
+        imageAssetName: String? = nil
+    ) {
+        controller.playStream(
+            url: url,
+            title: title,
+            artist: artist,
+            imageAssetName: imageAssetName
+        )
         delayedFetch()
     }
 

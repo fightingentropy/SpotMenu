@@ -12,6 +12,7 @@ struct PlaybackView: View {
         let id = UUID()
         let title: String
         let subtitle: String
+        let artist: String
         let url: URL
         let iconAssetName: String?
     }
@@ -33,6 +34,7 @@ struct PlaybackView: View {
             StreamItem(
                 title: "Dromos.gr",
                 subtitle: "n39a-eu.rcs.revma.com",
+                artist: "Live Stream",
                 url: URL(
                     string:
                         "https://n39a-eu.rcs.revma.com/10q3enqxbfhvv?rj-ttl=5&rj-tok=AAABnLZzfw8ASa_yyCYLNy3gcg"
@@ -263,8 +265,19 @@ struct PlaybackView: View {
     }
 
     private func streamRow(_ stream: StreamItem) -> some View {
-        Button(action: {
-            NSWorkspace.shared.open(stream.url)
+        let isCurrentStream = model.currentTrackID == stream.url
+
+        return Button(action: {
+            if isCurrentStream {
+                model.togglePlayPause()
+            } else {
+                model.playStream(
+                    url: stream.url,
+                    title: stream.title,
+                    artist: stream.artist,
+                    imageAssetName: stream.iconAssetName
+                )
+            }
         }) {
             HStack(spacing: 10) {
                 ZStack {
@@ -308,19 +321,27 @@ struct PlaybackView: View {
 
                 Spacer(minLength: 8)
 
-                Image(systemName: "play.fill")
+                Image(systemName: indicatorSymbol(isCurrentTrack: isCurrentStream))
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(preferences.foregroundColor.color)
                     .frame(width: 28, height: 28)
                     .background(
                         Circle()
-                            .fill(trackRowBackgroundColor.opacity(0.95))
+                            .fill(
+                                isCurrentStream
+                                    ? Color.accentColor.opacity(0.55)
+                                    : trackRowBackgroundColor.opacity(0.95)
+                            )
                     )
             }
             .padding(10)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(trackRowBackgroundColor)
+                    .fill(
+                        isCurrentStream
+                            ? Color.accentColor.opacity(0.22)
+                            : trackRowBackgroundColor
+                    )
             )
         }
         .buttonStyle(.plain)

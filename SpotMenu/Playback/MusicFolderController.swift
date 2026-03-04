@@ -25,6 +25,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
 
     private let preferences: MusicPlayerPreferencesModel
     private var audioPlayer: AVAudioPlayer?
+    private var streamPlayer: AVPlayer?
     private var trackURLs: [URL] = []
     private var cachedLibraryTracks: [LibraryTrack] = []
     private var metadataCache: [URL: TrackMetadata] = [:]
@@ -34,6 +35,10 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         qos: .userInitiated
     )
     private var currentTrackIndex: Int?
+    private var currentStreamURL: URL?
+    private var currentStreamTitle: String?
+    private var currentStreamArtist: String?
+    private var currentStreamImage: NSImage?
     private var isShuffleEnabledState = false
     private var shuffleOrder: [Int] = []
     private var shufflePosition: Int?
@@ -54,6 +59,25 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     }
 
     func fetchNowPlayingInfo() -> PlaybackInfo? {
+        if let streamURL = currentStreamURL,
+            let streamTitle = currentStreamTitle,
+            let streamArtist = currentStreamArtist,
+            let streamPlayer
+        {
+            return PlaybackInfo(
+                artist: streamArtist,
+                title: streamTitle,
+                isPlaying: streamPlayer.timeControlStatus == .playing,
+                imageURL: nil,
+                totalTime: 1,
+                currentTime: 0,
+                image: currentStreamImage.map { Image(nsImage: $0) },
+                isLiked: nil,
+                longFormInfo: nil,
+                trackID: streamURL
+            )
+        }
+
         refreshLibraryIfNeeded()
 
         guard ensureTrackLoaded(),
@@ -83,6 +107,15 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     }
 
     func togglePlayPause() {
+        if let streamPlayer {
+            if streamPlayer.timeControlStatus == .playing {
+                streamPlayer.pause()
+            } else {
+                streamPlayer.play()
+            }
+            return
+        }
+
         refreshLibraryIfNeeded()
         guard ensureTrackLoaded() else { return }
 
@@ -94,10 +127,12 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     }
 
     func skipForward() {
+        guard streamPlayer == nil else { return }
         playAdjacentTrack(step: 1)
     }
 
     func skipBack() {
+        guard streamPlayer == nil else { return }
         refreshLibraryIfNeeded()
 
         if let player = audioPlayer, player.currentTime > 3 {
@@ -109,6 +144,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     }
 
     func updatePlaybackPosition(to seconds: Double) {
+        guard streamPlayer == nil else { return }
         guard let player = audioPlayer else { return }
         let clampedSeconds = min(max(seconds, 0), player.duration)
         player.currentTime = clampedSeconds
@@ -120,13 +156,30 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     }
 
     func playTrack(_ trackID: URL) {
+        stopStreamPlaybackIfNeeded()
         refreshLibraryIfNeeded()
         guard let index = trackURLs.firstIndex(of: trackID) else { return }
         guard loadTrack(at: index) else { return }
         audioPlayer?.play()
     }
 
+    func playStream(url: URL, title: String, artist: String, imageAssetName: String?) {
+        audioPlayer?.stop()
+        audioPlayer = nil
+        currentTrackIndex = nil
+
+        let playerItem = AVPlayerItem(url: url)
+        let player = AVPlayer(playerItem: playerItem)
+        streamPlayer = player
+        currentStreamURL = url
+        currentStreamTitle = title
+        currentStreamArtist = artist
+        currentStreamImage = imageAssetName.flatMap { NSImage(named: $0) }
+        player.play()
+    }
+
     func playAll() {
+        stopStreamPlaybackIfNeeded()
         refreshLibraryIfNeeded()
         guard !trackURLs.isEmpty else { return }
 
@@ -366,6 +419,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     private func clearPlaybackState() {
         audioPlayer?.stop()
         audioPlayer = nil
+        stopStreamPlaybackIfNeeded()
         trackURLs = []
         shuffleOrder = []
         shufflePosition = nil
@@ -758,5 +812,14 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         }
 
         return nil
+    }
+
+    private func stopStreamPlaybackIfNeeded() {
+        streamPlayer?.pause()
+        streamPlayer = nil
+        currentStreamURL = nil
+        currentStreamTitle = nil
+        currentStreamArtist = nil
+        currentStreamImage = nil
     }
 }
