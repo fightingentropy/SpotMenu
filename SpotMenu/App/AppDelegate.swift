@@ -38,6 +38,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var popoverManager: PopoverManager!
     var preferencesWindow: NSWindow?
     var eventMonitor: Any?
+    var escapeKeyMonitor: Any?
     var playbackUpdateObserver: NSObjectProtocol?
     var menuBarPreferencesModelCancellable: AnyCancellable?
     var musicPlayerPreferencesModelCancellable: AnyCancellable?
@@ -75,6 +76,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSEvent.addLocalMonitorForEvents(matching: [.rightMouseUp]) {
             [weak self] event in
             self?.handleRightClick(event: event)
+            return nil
+        }
+
+        // Handle Escape reliably even in non-activating panel contexts.
+        escapeKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown])
+        { [weak self] event in
+            guard let self else { return event }
+            guard self.popoverManager.isVisible else { return event }
+            guard event.keyCode == 53 else { return event }  // Escape
+            guard !(NSApp.keyWindow?.firstResponder is NSTextView) else {
+                return event
+            }
+
+            self.popoverManager.dismiss(triggeredByEscape: true)
             return nil
         }
 
@@ -177,6 +192,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
+        }
+        if let escapeKeyMonitor {
+            NSEvent.removeMonitor(escapeKeyMonitor)
         }
         if let observer = playbackUpdateObserver {
             NotificationCenter.default.removeObserver(observer)
