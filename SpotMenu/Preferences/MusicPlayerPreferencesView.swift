@@ -11,27 +11,6 @@ struct MusicPlayerPreferencesView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Form {
                     Section {
-                        Picker(
-                            "Preferred Player",
-                            selection: $model.preferredMusicApp
-                        ) {
-                            ForEach(PreferredPlayer.allCases) { player in
-                                Text(player.displayName).tag(player)
-                            }
-                        }
-                    } header: {
-                        Text("Music Player")
-                    } footer: {
-                        Text(
-                            "\"Automatic\" uses Apple Music when it is running. Otherwise it plays files from your selected music folder."
-                        )
-                    }
-                }
-                .formStyle(.grouped)
-                .scrollContentBackground(.hidden)
-
-                Form {
-                    Section {
                         HStack {
                             Text("Current Folder")
                             Spacer()

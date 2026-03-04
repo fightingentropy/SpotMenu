@@ -26,6 +26,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     private let preferences: MusicPlayerPreferencesModel
     private var audioPlayer: AVAudioPlayer?
     private var trackURLs: [URL] = []
+    private var cachedLibraryTracks: [LibraryTrack] = []
     private var metadataCache: [URL: TrackMetadata] = [:]
     private var metadataIndexingWorkItem: DispatchWorkItem?
     private let metadataIndexingQueue = DispatchQueue(
@@ -33,6 +34,9 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         qos: .userInitiated
     )
     private var currentTrackIndex: Int?
+    private var isShuffleEnabledState = false
+    private var shuffleOrder: [Int] = []
+    private var shufflePosition: Int?
     private var currentFolderURL: URL?
     private var isAccessingSecurityScope = false
     private var lastFolderScanDate = Date.distantPast
@@ -112,18 +116,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
 
     func libraryTracks() -> [LibraryTrack] {
         refreshLibraryIfNeeded()
-
-        return trackURLs.map { url in
-            let metadata = metadata(for: url)
-            return LibraryTrack(
-                id: url,
-                title: metadata.title,
-                artist: metadata.artist,
-                album: metadata.album,
-                duration: metadata.duration,
-                image: metadata.image.map { Image(nsImage: $0) }
-            )
-        }
+        return cachedLibraryTracks
     }
 
     func playTrack(_ trackID: URL) {
@@ -136,8 +129,33 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     func playAll() {
         refreshLibraryIfNeeded()
         guard !trackURLs.isEmpty else { return }
-        guard loadTrack(at: 0) else { return }
+
+        let startIndex: Int
+        if isShuffleEnabledState {
+            rebuildShuffleOrder(preservingCurrent: false)
+            startIndex = shuffleOrder.first ?? 0
+            shufflePosition = 0
+        } else {
+            startIndex = 0
+        }
+
+        guard loadTrack(at: startIndex) else { return }
         audioPlayer?.play()
+    }
+
+    func toggleShuffle() {
+        isShuffleEnabledState.toggle()
+
+        if isShuffleEnabledState {
+            rebuildShuffleOrder(preservingCurrent: true)
+        } else {
+            shuffleOrder = []
+            shufflePosition = nil
+        }
+    }
+
+    func isShuffleEnabled() -> Bool {
+        isShuffleEnabledState
     }
 
     func openApp() {
@@ -177,6 +195,11 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         refreshLibraryIfNeeded()
         guard !trackURLs.isEmpty else { return }
 
+        if isShuffleEnabledState {
+            playAdjacentShuffledTrack(step: step)
+            return
+        }
+
         let nextIndex: Int
         if let index = currentTrackIndex {
             nextIndex = (index + step + trackURLs.count) % trackURLs.count
@@ -185,6 +208,32 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         }
 
         guard loadTrack(at: nextIndex) else { return }
+        audioPlayer?.play()
+    }
+
+    private func playAdjacentShuffledTrack(step: Int) {
+        if shuffleOrder.isEmpty {
+            rebuildShuffleOrder(preservingCurrent: true)
+        }
+
+        guard !shuffleOrder.isEmpty else { return }
+
+        let nextPosition: Int
+        if let shufflePosition {
+            nextPosition = (shufflePosition + step + shuffleOrder.count)
+                % shuffleOrder.count
+        } else if let currentTrackIndex,
+            let currentPosition = shuffleOrder.firstIndex(of: currentTrackIndex)
+        {
+            nextPosition = (currentPosition + step + shuffleOrder.count)
+                % shuffleOrder.count
+        } else {
+            nextPosition = step >= 0 ? 0 : shuffleOrder.count - 1
+        }
+
+        let nextIndex = shuffleOrder[nextPosition]
+        guard loadTrack(at: nextIndex) else { return }
+        shufflePosition = nextPosition
         audioPlayer?.play()
     }
 
@@ -198,6 +247,12 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
             player.prepareToPlay()
             audioPlayer = player
             currentTrackIndex = index
+            if isShuffleEnabledState {
+                if shuffleOrder.isEmpty {
+                    rebuildShuffleOrder(preservingCurrent: true)
+                }
+                shufflePosition = shuffleOrder.firstIndex(of: index)
+            }
             return true
         } catch {
             print("Failed to load audio file: \(error.localizedDescription)")
@@ -233,7 +288,9 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
 
         let scannedTracks = scanTracks(in: folderURL)
         trackURLs = scannedTracks
-        metadataCache = metadataCache.filter { scannedTracks.contains($0.key) }
+        let scannedTrackSet = Set(scannedTracks)
+        metadataCache = metadataCache.filter { scannedTrackSet.contains($0.key) }
+        rebuildLibraryTrackCache()
         startMetadataIndexing(for: scannedTracks)
 
         if let previousCurrentURL,
@@ -247,6 +304,8 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
                 audioPlayer = nil
             }
         }
+
+        synchronizeShuffleStateAfterLibraryRefresh()
     }
 
     private func scanTracks(in folderURL: URL) -> [URL] {
@@ -308,8 +367,60 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         audioPlayer?.stop()
         audioPlayer = nil
         trackURLs = []
+        shuffleOrder = []
+        shufflePosition = nil
+        cachedLibraryTracks = []
         metadataCache = [:]
         currentTrackIndex = nil
+    }
+
+    private func synchronizeShuffleStateAfterLibraryRefresh() {
+        guard isShuffleEnabledState else {
+            shuffleOrder = []
+            shufflePosition = nil
+            return
+        }
+
+        rebuildShuffleOrder(preservingCurrent: true)
+    }
+
+    private func rebuildShuffleOrder(preservingCurrent: Bool) {
+        guard !trackURLs.isEmpty else {
+            shuffleOrder = []
+            shufflePosition = nil
+            return
+        }
+
+        var pool = Array(trackURLs.indices)
+        let currentIndex = preservingCurrent ? currentTrackIndex : nil
+
+        if let currentIndex,
+            let currentPositionInPool = pool.firstIndex(of: currentIndex)
+        {
+            pool.remove(at: currentPositionInPool)
+            pool.shuffle()
+            shuffleOrder = [currentIndex] + pool
+            shufflePosition = 0
+            return
+        }
+
+        pool.shuffle()
+        shuffleOrder = pool
+        shufflePosition = 0
+    }
+
+    private func rebuildLibraryTrackCache() {
+        cachedLibraryTracks = trackURLs.map { url in
+            let metadata = metadataCache[url] ?? fallbackMetadata(for: url)
+            return LibraryTrack(
+                id: url,
+                title: metadata.title,
+                artist: metadata.artist,
+                album: metadata.album,
+                duration: metadata.duration,
+                image: metadata.image.map { Image(nsImage: $0) }
+            )
+        }
     }
 
     private func metadata(for url: URL) -> TrackMetadata {
@@ -319,7 +430,22 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
 
         let metadata = computeMetadata(for: url)
         metadataCache[url] = metadata
+        updateCachedLibraryTrack(for: url, metadata: metadata)
         return metadata
+    }
+
+    private func updateCachedLibraryTrack(for url: URL, metadata: TrackMetadata) {
+        guard let index = cachedLibraryTracks.firstIndex(where: { $0.id == url })
+        else { return }
+
+        cachedLibraryTracks[index] = LibraryTrack(
+            id: url,
+            title: metadata.title,
+            artist: metadata.artist,
+            album: metadata.album,
+            duration: metadata.duration,
+            image: metadata.image.map { Image(nsImage: $0) }
+        )
     }
 
     private func startMetadataIndexing(for trackURLs: [URL]) {
@@ -355,6 +481,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
                 self.metadataCache.merge(loadedMetadata) { _, incoming in
                     incoming
                 }
+                self.rebuildLibraryTrackCache()
             }
         }
 
@@ -458,6 +585,17 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         }
 
         return FilenameMetadata(title: filename, artist: nil)
+    }
+
+    private func fallbackMetadata(for url: URL) -> TrackMetadata {
+        let filenameMetadata = parseFilenameMetadata(from: url)
+        return TrackMetadata(
+            title: filenameMetadata.title,
+            artist: filenameMetadata.artist ?? "Music Folder",
+            album: nil,
+            duration: 0,
+            image: nil
+        )
     }
 
     private func stringMetadata(

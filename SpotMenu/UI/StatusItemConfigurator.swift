@@ -44,10 +44,14 @@ final class StatusItemConfigurator {
         else {
             return
         }
-        hostingView.layout()
-        statusItem.length = min(
-            hostingView.intrinsicContentSize.width,
-            maxWidth
-        )
+
+        let measuredWidth = hostingView.fittingSize.width > 0
+            ? hostingView.fittingSize.width
+            : hostingView.intrinsicContentSize.width
+        let targetWidth = min(measuredWidth, maxWidth)
+
+        if abs(statusItem.length - targetWidth) > 0.5 {
+            statusItem.length = targetWidth
+        }
     }
 }

@@ -13,6 +13,7 @@ struct PlaybackView: View {
     private var compactDimension: CGFloat { 300 }
     private var expandedWidth: CGFloat { preferences.popoverSize.width }
     private var expandedHeight: CGFloat { preferences.popoverSize.height }
+    private var metadataTextHeight: CGFloat { 46 }
 
     private var filteredLibraryTracks: [LibraryTrack] {
         let trimmedQuery = librarySearchText.trimmingCharacters(
@@ -320,7 +321,9 @@ struct PlaybackView: View {
                         .frame(width: width, height: height)
                         .clipped()
                         .blur(radius: blurRadius)
-                        .overlay(overlayColor)
+                        .overlay {
+                            artworkOverlay(customColor: overlayColor)
+                        }
                 }
             }
         } else if let fallbackImage = model.image {
@@ -330,7 +333,9 @@ struct PlaybackView: View {
                 .frame(width: width, height: height)
                 .clipped()
                 .blur(radius: blurRadius)
-                .overlay(overlayColor)
+                .overlay {
+                    artworkOverlay(customColor: overlayColor)
+                }
         } else {
             ZStack {
                 Color.clear
@@ -342,7 +347,17 @@ struct PlaybackView: View {
             }
             .frame(width: width, height: height)
             .blur(radius: blurRadius)
-            .overlay(overlayColor)
+            .overlay {
+                artworkOverlay(customColor: overlayColor)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func artworkOverlay(customColor: Color?) -> some View {
+        Color.black.opacity(0.34)
+        if let customColor {
+            customColor
         }
     }
 
@@ -371,6 +386,23 @@ struct PlaybackView: View {
                 Spacer()
 
                 Button(action: {
+                    model.toggleShuffle()
+                }) {
+                    Image(
+                        systemName: model.isShuffleEnabled
+                            ? "shuffle.circle.fill"
+                            : "shuffle.circle"
+                    )
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundColor(preferences.foregroundColor.color)
+                    .frame(width: 22, height: 22)
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                Button(action: {
                     NSApp.sendAction(
                         #selector(AppDelegate.preferencesAction),
                         to: nil,
@@ -385,7 +417,9 @@ struct PlaybackView: View {
                 }
                 .buttonStyle(.plain)
             }
-            .padding([.top, .leading, .trailing], 16)
+            .padding(.top, 20)
+            .padding(.leading, 30)
+            .padding(.trailing, 30)
             .padding(.bottom, 24)
 
             VStack(spacing: 12) {
@@ -393,6 +427,13 @@ struct PlaybackView: View {
                     .font(.title3)
                     .foregroundColor(preferences.foregroundColor.color)
                     .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(
+                        maxWidth: .infinity,
+                        minHeight: metadataTextHeight,
+                        maxHeight: metadataTextHeight,
+                        alignment: .center
+                    )
                     .padding(.horizontal)
 
                 HStack(spacing: 10) {
@@ -421,6 +462,13 @@ struct PlaybackView: View {
                     .font(.title3)
                     .foregroundColor(preferences.foregroundColor.color)
                     .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(
+                        maxWidth: .infinity,
+                        minHeight: metadataTextHeight,
+                        maxHeight: metadataTextHeight,
+                        alignment: .center
+                    )
                     .padding(.horizontal)
             }
 
@@ -559,7 +607,8 @@ func tappableIconButton(
             .resizable()
             .scaledToFit()
             .frame(width: imageSize, height: imageSize)
-            .padding(30)
+            .frame(width: 44, height: 44)
+            .padding(16)
             .contentShape(Rectangle())
     }
     .buttonStyle(.plain)

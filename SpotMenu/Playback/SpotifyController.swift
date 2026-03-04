@@ -3,6 +3,8 @@ import SwiftUI
 
 class SpotifyController: MusicPlayerController {
     private var lastTrackID: String?
+    private var lastLikedLookupTrackID: String?
+    private var pendingLikedTrackID: String?
     private var lastTrackType: String?
     private var lastIsLiked: Bool?
     private var longFormInfoCache =
@@ -70,6 +72,8 @@ class SpotifyController: MusicPlayerController {
         if !isTrack {
             isLikedResult = nil
             lastIsLiked = nil
+            lastLikedLookupTrackID = nil
+            pendingLikedTrackID = nil
         }
 
         if longFormKind != nil, let trackID, let longFormKind {
@@ -95,18 +99,20 @@ class SpotifyController: MusicPlayerController {
             }
         }
 
-        if let trackID = trackID, trackID != lastTrackID, isTrack {
-            let semaphore = DispatchSemaphore(value: 0)
-
-            SpotifyAuthManager.shared.checkIfTrackIsLiked(trackID: trackID) {
-                isLiked in
-                self.lastIsLiked = isLiked
-                isLikedResult = isLiked
-                semaphore.signal()
+        if isTrack, let trackID {
+            if trackID != lastTrackID {
+                lastTrackID = trackID
+                lastIsLiked = nil
             }
 
-            _ = semaphore.wait(timeout: .now() + 2)
-            lastTrackID = trackID
+            if pendingLikedTrackID != trackID,
+                lastLikedLookupTrackID != trackID
+            {
+                lastLikedLookupTrackID = trackID
+                fetchLikedStateAsync(for: trackID)
+            }
+
+            isLikedResult = lastIsLiked
         }
 
         return PlaybackInfo(
@@ -343,6 +349,25 @@ class SpotifyController: MusicPlayerController {
                 string:
                     "https://api.spotify.com/v1/episodes/\(id)?market=from_token"
             )
+        }
+    }
+
+    private func fetchLikedStateAsync(for trackID: String) {
+        pendingLikedTrackID = trackID
+
+        SpotifyAuthManager.shared.checkIfTrackIsLiked(trackID: trackID) {
+            [weak self] isLiked in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                guard self.pendingLikedTrackID == trackID else { return }
+                self.pendingLikedTrackID = nil
+                guard self.lastTrackID == trackID else { return }
+                self.lastIsLiked = isLiked
+                NotificationCenter.default.post(
+                    name: .spotifyLikeStateDidUpdate,
+                    object: nil
+                )
+            }
         }
     }
 

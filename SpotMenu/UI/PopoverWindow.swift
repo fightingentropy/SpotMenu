@@ -2,6 +2,9 @@ import Cocoa
 import SwiftUI
 
 class PopoverWindow: NSPanel {
+    var onSeekForward: (() -> Void)?
+    var onSeekBackward: (() -> Void)?
+
     init<Content: View>(rootView: Content, size: CGSize) {
         let hostingView = NSHostingView(rootView: rootView)
         let contentRect = NSRect(origin: .zero, size: size)
@@ -39,5 +42,50 @@ class PopoverWindow: NSPanel {
 
     override var canBecomeMain: Bool {
         return false
+    }
+
+    override func sendEvent(_ event: NSEvent) {
+        if handleSeekKeyEvent(event) {
+            return
+        }
+
+        super.sendEvent(event)
+    }
+
+    private func handleSeekKeyEvent(_ event: NSEvent) -> Bool {
+        guard event.type == .keyDown || event.type == .keyUp else {
+            return false
+        }
+
+        guard !(firstResponder is NSTextView) else {
+            return false
+        }
+
+        let modifiers = event.modifierFlags.intersection(
+            .deviceIndependentFlagsMask
+        )
+        if modifiers.contains(.command)
+            || modifiers.contains(.option)
+            || modifiers.contains(.control)
+            || modifiers.contains(.function)
+        {
+            return false
+        }
+
+        guard let key = event.charactersIgnoringModifiers?.lowercased(),
+            key == "x" || key == "z"
+        else {
+            return false
+        }
+
+        if event.type == .keyDown {
+            if key == "x" {
+                onSeekForward?()
+            } else {
+                onSeekBackward?()
+            }
+        }
+
+        return true
     }
 }

@@ -5,6 +5,10 @@ class PopoverManager {
     private var window: PopoverWindow
     private weak var lastAnchorButton: NSStatusBarButton?
 
+    var isVisible: Bool {
+        window.isVisible
+    }
+
     init<Content: View>(contentView: Content, size: CGSize) {
         self.window = PopoverWindow(rootView: contentView, size: size)
     }
@@ -26,6 +30,14 @@ class PopoverManager {
         if window.isVisible, let button = lastAnchorButton {
             positionWindow(relativeTo: button)
         }
+    }
+
+    func setSeekHandlers(
+        onSeekForward: @escaping () -> Void,
+        onSeekBackward: @escaping () -> Void
+    ) {
+        window.onSeekForward = onSeekForward
+        window.onSeekBackward = onSeekBackward
     }
 
     private func show(relativeTo button: NSStatusBarButton) {

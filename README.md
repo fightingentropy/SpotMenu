@@ -32,12 +32,23 @@ The app is signed and notarized, and includes automatic updates via Sparkle.
 
 ### Build from Source
 
-**Requirements:** macOS 13+ (Ventura), Xcode 15+
+**Requirements:** macOS 13+ (Ventura), Xcode 15+ (GUI optional)
 
 ```bash
 git clone https://github.com/fightingentropy/SpotMenu.git
 cd SpotMenu
-open SpotMenu.xcodeproj
+make build
+make run
+```
+
+Common terminal workflows:
+
+```bash
+make build                     # Debug build
+make test                      # Run test targets
+make run                       # Build and launch SpotMenu.app
+make clean                     # Remove local derived data
+make build CONFIGURATION=Release
 ```
 
 ---

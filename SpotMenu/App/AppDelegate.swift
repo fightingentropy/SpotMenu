@@ -3,6 +3,27 @@ import KeyboardShortcuts
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private struct StatusItemRenderSnapshot: Equatable {
+        let artist: String
+        let title: String
+        let isPlaying: Bool
+        let isLiked: Bool?
+        let playerIconName: String
+        let isLikingImplemented: Bool
+        let likingEnabled: Bool
+        let showArtist: Bool
+        let showTitle: Bool
+        let showIsLikedIcon: Bool
+        let showAppIcon: Bool
+        let compactView: Bool
+        let hideArtistWhenPaused: Bool
+        let hideTitleWhenPaused: Bool
+        let fontWeightCompactTop: MenuBarFontWeight
+        let fontWeightCompactBottom: MenuBarFontWeight
+        let fontWeightNormal: MenuBarFontWeight
+        let maxStatusItemWidth: CGFloat
+    }
+
     var statusItem: NSStatusItem!
     var statusItemModel = StatusItemModel()
     var playbackAppearancePreferencesModel =
@@ -13,9 +34,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var popoverManager: PopoverManager!
     var preferencesWindow: NSWindow?
     var eventMonitor: Any?
+    var playbackUpdateObserver: NSObjectProtocol?
     var menuBarPreferencesModelCancellable: AnyCancellable?
+    var musicPlayerPreferencesModelCancellable: AnyCancellable?
     var playbackAppearanceCancellable: AnyCancellable?
     var isUsingCustomStatusView = false
+    private var lastStatusItemRenderSnapshot: StatusItemRenderSnapshot?
+    private var isStatusItemWidthUpdateScheduled = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -35,7 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         // Observe playback updates
-        NotificationCenter.default.addObserver(
+        playbackUpdateObserver = NotificationCenter.default.addObserver(
             forName: .contentModelDidUpdate,
             object: nil,
             queue: .main
@@ -53,18 +78,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             contentView: playbackView,
             size: playbackAppearancePreferencesModel.popoverSize
         )
+        popoverManager.setSeekHandlers(onSeekForward: { [weak self] in
+            self?.playbackModel.seek(by: 10)
+        }, onSeekBackward: { [weak self] in
+            self?.playbackModel.seek(by: -10)
+        })
 
         // Global event monitor to dismiss popover
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
             .leftMouseDown, .rightMouseDown,
         ]) { [weak self] _ in
             self?.popoverManager.dismiss()
-        }
-
-        // Update UI periodically
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
-            [weak self] _ in
-            self?.updateStatusItem()
         }
 
         StatusItemConfigurator.configure(
@@ -83,6 +107,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         menuBarPreferencesModelCancellable = menuBarPreferencesModel
             .objectWillChange.sink { [weak self] _ in
+                DispatchQueue.main.async {
+                    self?.updateStatusItem()
+                }
+            }
+
+        musicPlayerPreferencesModelCancellable = musicPlayerPreferencesModel
+            .$likingEnabled
+            .removeDuplicates()
+            .sink { [weak self] _ in
                 self?.updateStatusItem()
             }
 
@@ -107,6 +140,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
         }
+        if let observer = playbackUpdateObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        menuBarPreferencesModelCancellable?.cancel()
+        musicPlayerPreferencesModelCancellable?.cancel()
+        playbackAppearanceCancellable?.cancel()
     }
 
     private func configurePlaybackShortcutDefaults() {
@@ -173,10 +212,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setupKeyboardShortcuts() {
         KeyboardShortcuts.onKeyUp(for: .playPause) { [weak self] in
-            self?.playbackModel.togglePlayPause()
+            guard let self, self.popoverManager.isVisible else { return }
+            self.playbackModel.togglePlayPause()
             // Immediately update status item for keyboard shortcut feedback
             DispatchQueue.main.async {
-                self?.updateStatusItem()
+                self.updateStatusItem()
             }
         }
         KeyboardShortcuts.onKeyDown(for: .nextTrack) { [weak self] in
@@ -217,27 +257,62 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func updateStatusItem() {
-        // Update status item model first
-        statusItemModel.artist = playbackModel.artist
-        statusItemModel.title = playbackModel.title
-        statusItemModel.isPlaying = playbackModel.isPlaying
-        statusItemModel.isLiked = playbackModel.isLiked
-        statusItemModel.playerIconName = playbackModel.playerIconName
-
-        // Update width immediately and synchronously after model changes
-        StatusItemConfigurator.updateWidth(
-            statusItem: statusItem,
-            maxWidth: menuBarPreferencesModel.maxStatusItemWidth
+        let snapshot = StatusItemRenderSnapshot(
+            artist: playbackModel.artist,
+            title: playbackModel.title,
+            isPlaying: playbackModel.isPlaying,
+            isLiked: playbackModel.isLiked,
+            playerIconName: playbackModel.playerIconName,
+            isLikingImplemented: playbackModel.isLikingImplemented,
+            likingEnabled: musicPlayerPreferencesModel.likingEnabled,
+            showArtist: menuBarPreferencesModel.showArtist,
+            showTitle: menuBarPreferencesModel.showTitle,
+            showIsLikedIcon: menuBarPreferencesModel.showIsLikedIcon,
+            showAppIcon: menuBarPreferencesModel.showAppIcon,
+            compactView: menuBarPreferencesModel.compactView,
+            hideArtistWhenPaused: menuBarPreferencesModel.hideArtistWhenPaused,
+            hideTitleWhenPaused: menuBarPreferencesModel.hideTitleWhenPaused,
+            fontWeightCompactTop: menuBarPreferencesModel.fontWeightCompactTop,
+            fontWeightCompactBottom: menuBarPreferencesModel
+                .fontWeightCompactBottom,
+            fontWeightNormal: menuBarPreferencesModel.fontWeightNormal,
+            maxStatusItemWidth: menuBarPreferencesModel.maxStatusItemWidth
         )
-        
-        // Force immediate layout update to prevent truncation flash
-        statusItem.button?.needsLayout = true
-        statusItem.button?.layoutSubtreeIfNeeded()
-        
-        // Ensure the hosting view updates its layout immediately
-        if let hostingView = statusItem.button?.subviews.compactMap({ $0 as? NSHostingView<StatusItemView> }).first {
-            hostingView.needsLayout = true
-            hostingView.layoutSubtreeIfNeeded()
+
+        guard snapshot != lastStatusItemRenderSnapshot else { return }
+        lastStatusItemRenderSnapshot = snapshot
+
+        if statusItemModel.artist != snapshot.artist {
+            statusItemModel.artist = snapshot.artist
+        }
+        if statusItemModel.title != snapshot.title {
+            statusItemModel.title = snapshot.title
+        }
+        if statusItemModel.isPlaying != snapshot.isPlaying {
+            statusItemModel.isPlaying = snapshot.isPlaying
+        }
+        if statusItemModel.isLiked != snapshot.isLiked {
+            statusItemModel.isLiked = snapshot.isLiked
+        }
+        if statusItemModel.playerIconName != snapshot.playerIconName {
+            statusItemModel.playerIconName = snapshot.playerIconName
+        }
+
+        scheduleStatusItemWidthUpdate()
+    }
+
+    private func scheduleStatusItemWidthUpdate() {
+        guard !isStatusItemWidthUpdateScheduled else { return }
+        isStatusItemWidthUpdateScheduled = true
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.isStatusItemWidthUpdateScheduled = false
+
+            StatusItemConfigurator.updateWidth(
+                statusItem: self.statusItem,
+                maxWidth: self.menuBarPreferencesModel.maxStatusItemWidth
+            )
         }
     }
 

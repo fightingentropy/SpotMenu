@@ -5,11 +5,13 @@ extension Notification.Name {
     static let contentModelDidUpdate = Notification.Name(
         "PlaybackModelDidUpdate"
     )
+    static let spotifyLikeStateDidUpdate = Notification.Name(
+        "SpotifyLikeStateDidUpdate"
+    )
 }
 
 enum PlayerType {
     case musicFolder
-    case appleMusic
 }
 
 enum LongFormTitleStyle: String, CaseIterable, Identifiable {
@@ -24,22 +26,6 @@ enum LongFormTitleStyle: String, CaseIterable, Identifiable {
         case .titleOnly: return "Title Only"
         case .segmentOnly: return "Chapter/Episode Only"
         case .titleAndSegment: return "Title + Chapter/Episode"
-        }
-    }
-}
-
-enum PreferredPlayer: String, CaseIterable, Identifiable {
-    case automatic
-    case musicFolder
-    case appleMusic
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .automatic: return "Automatic"
-        case .musicFolder: return "Music Folder"
-        case .appleMusic: return "Apple Music"
         }
     }
 }
@@ -115,12 +101,16 @@ protocol MusicPlayerController {
     func libraryTracks() -> [LibraryTrack]
     func playTrack(_ trackID: URL)
     func playAll()
+    func toggleShuffle()
+    func isShuffleEnabled() -> Bool
 }
 
 extension MusicPlayerController {
     func libraryTracks() -> [LibraryTrack] { [] }
     func playTrack(_ trackID: URL) {}
     func playAll() {}
+    func toggleShuffle() {}
+    func isShuffleEnabled() -> Bool { false }
 }
 
 class PlaybackModel: ObservableObject {
@@ -136,109 +126,72 @@ class PlaybackModel: ObservableObject {
     @Published var longFormInfo: LongFormInfo? = nil
     @Published var libraryTracks: [LibraryTrack] = []
     @Published var currentTrackID: URL? = nil
+    @Published var isShuffleEnabled: Bool = false
 
     private let preferences: MusicPlayerPreferencesModel
     private var controller: MusicPlayerController
     private var timer: Timer?
+    private var libraryRefreshTimer: Timer?
 
-    private var cancellable: AnyCancellable?
     private var folderCancellable: AnyCancellable?
+    private var spotifyLikeStateCancellable: AnyCancellable?
 
     var playerIconName: String {
-        switch playerType {
-        case .appleMusic:
-            return "AppleMusicIcon"
-        case .musicFolder:
-            return "SpotifyIcon"
-        }
+        return "SpotifyIcon"
     }
 
     var isLikingImplemented: Bool {
-        return controller is SpotifyController
+        return false
     }
 
     var supportsLibraryBrowser: Bool {
-        return playerType == .musicFolder
+        return true
     }
 
     init(preferences: MusicPlayerPreferencesModel) {
         self.preferences = preferences
-
-        let (controller, type) = Self.selectController(
-            for: preferences.preferredMusicApp,
-            preferences: preferences
-        )
-        self.controller = controller
-        self.playerType = type
+        self.controller = MusicFolderController(preferences: preferences)
+        self.playerType = .musicFolder
+        self.isShuffleEnabled = controller.isShuffleEnabled()
 
         fetchInfo()
         refreshLibrary()
-        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in
-            self.fetchInfo()
+        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) {
+            [weak self] _ in
+            self?.fetchInfo()
         }
-
-        cancellable = preferences.$preferredMusicApp
-            .removeDuplicates()
-            .sink { [weak self] newPreference in
-                self?.switchPlayer(to: newPreference)
-            }
+        libraryRefreshTimer = Timer.scheduledTimer(
+            withTimeInterval: 15,
+            repeats: true
+        ) { [weak self] _ in
+            self?.refreshLibrary()
+        }
 
         folderCancellable = preferences.$musicFolderBookmarkData
             .sink { [weak self] _ in
                 guard let self = self, self.playerType == .musicFolder else {
                     return
                 }
+                self.refreshLibrary()
                 self.fetchInfo()
             }
-    }
 
-    func switchPlayer(to newPreference: PreferredPlayer) {
-        let (newController, newType) = Self.selectController(
-            for: newPreference,
-            preferences: preferences
+        spotifyLikeStateCancellable = NotificationCenter.default.publisher(
+            for: .spotifyLikeStateDidUpdate
         )
-        controller = newController
-        playerType = newType
-        fetchInfo()
-        refreshLibrary()
-    }
-
-    private static func selectController(
-        for preference: PreferredPlayer,
-        preferences: MusicPlayerPreferencesModel
-    ) -> (
-        MusicPlayerController, PlayerType
-    ) {
-        let appleMusicRunning = isAppRunning("com.apple.Music")
-
-        switch preference {
-        case .appleMusic:
-            return (AppleMusicController(), .appleMusic)
-        case .musicFolder:
-            return (
-                MusicFolderController(preferences: preferences),
-                .musicFolder
-            )
-        case .automatic:
-            if appleMusicRunning {
-                return (AppleMusicController(), .appleMusic)
-            }
-            return (
-                MusicFolderController(preferences: preferences),
-                .musicFolder
-            )
+        .sink { [weak self] _ in
+            self?.fetchInfo()
         }
     }
 
-    private static func isAppRunning(_ bundleIdentifier: String) -> Bool {
-        return NSRunningApplication.runningApplications(
-            withBundleIdentifier: bundleIdentifier
-        ).count > 0
+    deinit {
+        timer?.invalidate()
+        libraryRefreshTimer?.invalidate()
+        folderCancellable?.cancel()
+        spotifyLikeStateCancellable?.cancel()
     }
 
     func fetchInfo() {
-        refreshLibrary()
-
         guard let info = controller.fetchNowPlayingInfo() else {
             reset()
             return
@@ -257,6 +210,7 @@ class PlaybackModel: ObservableObject {
             self.isLiked = info.isLiked
             self.longFormInfo = info.longFormInfo
             self.currentTrackID = info.trackID
+            self.isShuffleEnabled = self.controller.isShuffleEnabled()
 
             NotificationCenter.default.post(
                 name: .contentModelDidUpdate,
@@ -328,8 +282,24 @@ class PlaybackModel: ObservableObject {
         self.currentTime = seconds
     }
 
+    func seek(by delta: Double) {
+        let clampedTargetTime = min(
+            max(currentTime + delta, 0),
+            max(totalTime, 0)
+        )
+        updatePlaybackPosition(to: clampedTargetTime)
+        notifyModelUpdate()
+        delayedFetch()
+    }
+
     func openMusicApp() {
         controller.openApp()
+    }
+
+    func toggleShuffle() {
+        controller.toggleShuffle()
+        isShuffleEnabled = controller.isShuffleEnabled()
+        notifyModelUpdate()
     }
 
     func refreshLibrary() {
@@ -344,7 +314,9 @@ class PlaybackModel: ObservableObject {
 
         let tracks = controller.libraryTracks()
         DispatchQueue.main.async {
-            self.libraryTracks = tracks
+            if self.libraryTracks != tracks {
+                self.libraryTracks = tracks
+            }
         }
     }
 
