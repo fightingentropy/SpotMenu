@@ -3,17 +3,44 @@ import Foundation
 import SwiftUI
 
 struct PlaybackView: View {
+    private enum LibraryCategory {
+        case library
+        case streams
+    }
+
+    private struct StreamItem: Identifiable {
+        let id = UUID()
+        let title: String
+        let subtitle: String
+        let url: URL
+        let iconAssetName: String?
+    }
+
     @ObservedObject var model: PlaybackModel
     @ObservedObject var preferences: PlaybackAppearancePreferencesModel
     @ObservedObject var musicPlayerPreferencesModel: MusicPlayerPreferencesModel
     @State private var isHovering = false
     @State private var librarySearchText = ""
+    @State private var selectedCategory: LibraryCategory = .library
     @Environment(\.colorScheme) private var systemColorScheme
 
     private var compactDimension: CGFloat { 300 }
     private var expandedWidth: CGFloat { preferences.popoverSize.width }
     private var expandedHeight: CGFloat { preferences.popoverSize.height }
     private var metadataTextHeight: CGFloat { 46 }
+    private var streams: [StreamItem] {
+        [
+            StreamItem(
+                title: "Dromos.gr",
+                subtitle: "n39a-eu.rcs.revma.com",
+                url: URL(
+                    string:
+                        "https://n39a-eu.rcs.revma.com/10q3enqxbfhvv?rj-ttl=5&rj-tok=AAABnLZzfw8ASa_yyCYLNy3gcg"
+                )!,
+                iconAssetName: "DromosIcon"
+            )
+        ]
+    }
 
     private var filteredLibraryTracks: [LibraryTrack] {
         let trimmedQuery = librarySearchText.trimmingCharacters(
@@ -130,17 +157,20 @@ struct PlaybackView: View {
     private var libraryContent: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center) {
-                Text("Library")
-                    .font(.headline)
-                    .foregroundColor(preferences.foregroundColor.color)
+                HStack(spacing: 10) {
+                    categoryButton(title: "Library", category: .library)
+                    categoryButton(title: "Streams", category: .streams)
+                }
 
                 Spacer()
 
-                Text("\(filteredLibraryTracks.count) tracks")
-                    .font(.caption)
-                    .foregroundColor(
-                        preferences.foregroundColor.color.opacity(0.75)
-                    )
+                if selectedCategory == .library {
+                    Text("\(filteredLibraryTracks.count) tracks")
+                        .font(.caption)
+                        .foregroundColor(
+                            preferences.foregroundColor.color.opacity(0.75)
+                        )
+                }
 
                 Button("Play All") {
                     model.playAllFromLibrary()
@@ -153,24 +183,35 @@ struct PlaybackView: View {
                         .fill(trackRowBackgroundColor.opacity(0.9))
                 )
                 .foregroundColor(preferences.foregroundColor.color)
-                .disabled(filteredLibraryTracks.isEmpty)
+                .disabled(selectedCategory != .library || filteredLibraryTracks.isEmpty)
             }
 
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(preferences.foregroundColor.color.opacity(0.7))
-                TextField("Search songs", text: $librarySearchText)
-                    .textFieldStyle(.plain)
-                    .foregroundColor(preferences.foregroundColor.color)
+            if selectedCategory == .library {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(preferences.foregroundColor.color.opacity(0.7))
+                    TextField("Search songs", text: $librarySearchText)
+                        .textFieldStyle(.plain)
+                        .foregroundColor(preferences.foregroundColor.color)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(trackRowBackgroundColor.opacity(0.85))
+                )
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(trackRowBackgroundColor.opacity(0.85))
-            )
 
-            if !model.supportsLibraryBrowser {
+            if selectedCategory == .streams {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(streams) { stream in
+                            streamRow(stream)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            } else if !model.supportsLibraryBrowser {
                 Spacer()
                 Text("Library browser is available in Music Folder mode.")
                     .font(.subheadline)
@@ -200,6 +241,89 @@ struct PlaybackView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(.ultraThinMaterial)
         )
+    }
+
+    private func categoryButton(title: String, category: LibraryCategory) -> some View {
+        let isSelected = selectedCategory == category
+
+        return Button(title) {
+            selectedCategory = category
+        }
+        .buttonStyle(.plain)
+        .font(.headline)
+        .foregroundColor(
+            preferences.foregroundColor.color.opacity(isSelected ? 1 : 0.7)
+        )
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(isSelected ? trackRowBackgroundColor.opacity(0.9) : Color.clear)
+        )
+    }
+
+    private func streamRow(_ stream: StreamItem) -> some View {
+        Button(action: {
+            NSWorkspace.shared.open(stream.url)
+        }) {
+            HStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(trackRowBackgroundColor.opacity(0.9))
+
+                    if let iconAssetName = stream.iconAssetName,
+                        NSImage(named: iconAssetName) != nil
+                    {
+                        Image(iconAssetName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
+                            .clipShape(
+                                RoundedRectangle(
+                                    cornerRadius: 5,
+                                    style: .continuous
+                                )
+                            )
+                    } else {
+                        Image(systemName: "dot.radiowaves.left.and.right")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(
+                                preferences.foregroundColor.color.opacity(0.8)
+                            )
+                    }
+                }
+                .frame(width: 48, height: 48)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(stream.title)
+                        .font(.headline)
+                        .foregroundColor(preferences.foregroundColor.color)
+                        .lineLimit(1)
+
+                    Text(stream.subtitle)
+                        .font(.subheadline)
+                        .foregroundColor(preferences.foregroundColor.color.opacity(0.8))
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "play.fill")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(preferences.foregroundColor.color)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        Circle()
+                            .fill(trackRowBackgroundColor.opacity(0.95))
+                    )
+            }
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(trackRowBackgroundColor)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private func trackRow(_ track: LibraryTrack) -> some View {
