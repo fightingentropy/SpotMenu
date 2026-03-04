@@ -32,9 +32,9 @@ struct PlaybackView: View {
     private var streams: [StreamItem] {
         [
             StreamItem(
-                title: "dromos fm",
-                subtitle: "n39a-eu.rcs.revma.com",
-                artist: "",
+                title: "Dromos FM",
+                subtitle: "Live Radio",
+                artist: "Live Stream",
                 url: URL(
                     string:
                         "https://n39a-eu.rcs.revma.com/10q3enqxbfhvv?rj-ttl=5&rj-tok=AAABnLZzfw8ASa_yyCYLNy3gcg"
@@ -308,12 +308,12 @@ struct PlaybackView: View {
                 .frame(width: 48, height: 48)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(stream.title)
+                    Text(verbatim: stream.title)
                         .font(.headline)
                         .foregroundColor(preferences.foregroundColor.color)
                         .lineLimit(1)
 
-                    Text(stream.subtitle)
+                    Text(verbatim: stream.subtitle)
                         .font(.subheadline)
                         .foregroundColor(preferences.foregroundColor.color.opacity(0.8))
                         .lineLimit(1)
