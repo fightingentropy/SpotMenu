@@ -13,6 +13,8 @@ struct PlaybackView: View {
     @ObservedObject var musicPlayerPreferencesModel: MusicPlayerPreferencesModel
     @State private var isHovering = false
     @State private var librarySearchText = ""
+    @State private var debouncedLibrarySearchText = ""
+    @State private var searchDebounceWorkItem: DispatchWorkItem?
     @State private var selectedCategory: LibraryCategory
     @Environment(\.colorScheme) private var systemColorScheme
 
@@ -37,7 +39,7 @@ struct PlaybackView: View {
     }
 
     private var filteredLibraryTracks: [LibraryTrack] {
-        let trimmedQuery = librarySearchText.trimmingCharacters(
+        let trimmedQuery = debouncedLibrarySearchText.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
 
@@ -45,11 +47,8 @@ struct PlaybackView: View {
             return model.libraryTracks
         }
 
-        let lowered = trimmedQuery.lowercased()
-        return model.libraryTracks.filter { track in
-            track.title.lowercased().contains(lowered)
-                || track.artist.lowercased().contains(lowered)
-                || (track.album?.lowercased().contains(lowered) ?? false)
+        return model.libraryTracks.filter {
+            model.matchesLibraryTrack($0, query: trimmedQuery)
         }
     }
 
@@ -69,6 +68,15 @@ struct PlaybackView: View {
         }
         .onAppear {
             model.refreshLibrary()
+            debouncedLibrarySearchText = librarySearchText
+        }
+        .onChange(of: librarySearchText) { newValue in
+            searchDebounceWorkItem?.cancel()
+            let workItem = DispatchWorkItem {
+                debouncedLibrarySearchText = newValue
+            }
+            searchDebounceWorkItem = workItem
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16, execute: workItem)
         }
     }
 
@@ -167,7 +175,10 @@ struct PlaybackView: View {
                 }
 
                 Button("Play All") {
-                    model.playAllFromLibrary()
+                    model.playFilteredLibraryTracks(
+                        filteredLibraryTracks,
+                        query: debouncedLibrarySearchText
+                    )
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 10)
@@ -227,6 +238,12 @@ struct PlaybackView: View {
                         }
                     }
                     .padding(.vertical, 2)
+                }
+                .onAppear {
+                    let visibleTrackIDs = Array(
+                        filteredLibraryTracks.prefix(18).map(\.id)
+                    )
+                    model.requestMetadataForTracks(visibleTrackIDs)
                 }
             }
         }
@@ -395,6 +412,9 @@ struct PlaybackView: View {
             )
         }
         .buttonStyle(.plain)
+        .onAppear {
+            model.requestMetadataForTracks([track.id])
+        }
     }
 
     private func indicatorSymbol(isCurrentTrack: Bool) -> String {

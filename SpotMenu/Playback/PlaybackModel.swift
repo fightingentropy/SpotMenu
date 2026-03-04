@@ -97,6 +97,11 @@ struct StreamStation: Identifiable, Equatable {
     let iconAssetName: String?
 }
 
+enum LibraryPlaybackQueue: Equatable {
+    case fullLibrary
+    case filtered(query: String, count: Int)
+}
+
 protocol MusicPlayerController {
     func fetchNowPlayingInfo() -> PlaybackInfo?
     func togglePlayPause()
@@ -108,7 +113,9 @@ protocol MusicPlayerController {
     func likeTrack()
     func unlikeTrack()
     func libraryTracks() -> [LibraryTrack]
+    func requestMetadata(for trackIDs: [URL])
     func playTrack(_ trackID: URL)
+    func playTracks(_ trackIDs: [URL])
     func playStream(url: URL, title: String, artist: String, imageAssetName: String?)
     func playAll()
     func toggleShuffle()
@@ -117,7 +124,9 @@ protocol MusicPlayerController {
 
 extension MusicPlayerController {
     func libraryTracks() -> [LibraryTrack] { [] }
+    func requestMetadata(for trackIDs: [URL]) {}
     func playTrack(_ trackID: URL) {}
+    func playTracks(_ trackIDs: [URL]) {}
     func playStream(url: URL, title: String, artist: String, imageAssetName: String?) {}
     func playAll() {}
     func toggleShuffle() {}
@@ -168,6 +177,8 @@ class PlaybackModel: ObservableObject {
     @Published var isLiked: Bool? = nil
     @Published var longFormInfo: LongFormInfo? = nil
     @Published var libraryTracks: [LibraryTrack] = []
+    @Published private(set) var libraryPlaybackQueue: LibraryPlaybackQueue =
+        .fullLibrary
     @Published var currentTrackID: URL? = nil
     @Published var isShuffleEnabled: Bool = false
 
@@ -178,6 +189,7 @@ class PlaybackModel: ObservableObject {
 
     private var folderCancellable: AnyCancellable?
     private var spotifyLikeStateCancellable: AnyCancellable?
+    private var librarySearchIndex: [URL: String] = [:]
 
     var playerIconName: String {
         return "SpotifyIcon"
@@ -360,6 +372,7 @@ class PlaybackModel: ObservableObject {
             if !libraryTracks.isEmpty {
                 DispatchQueue.main.async {
                     self.libraryTracks = []
+                    self.librarySearchIndex = [:]
                 }
             }
             return
@@ -369,11 +382,13 @@ class PlaybackModel: ObservableObject {
         DispatchQueue.main.async {
             if self.libraryTracks != tracks {
                 self.libraryTracks = tracks
+                self.rebuildLibrarySearchIndex(with: tracks)
             }
         }
     }
 
     func playLibraryTrack(_ track: LibraryTrack) {
+        libraryPlaybackQueue = .fullLibrary
         controller.playTrack(track.id)
         delayedFetch()
     }
@@ -394,8 +409,39 @@ class PlaybackModel: ObservableObject {
     }
 
     func playAllFromLibrary() {
+        libraryPlaybackQueue = .fullLibrary
         controller.playAll()
         delayedFetch()
+    }
+
+    func playFilteredLibraryTracks(_ tracks: [LibraryTrack], query: String) {
+        let trackIDs = tracks.map(\.id)
+        guard !trackIDs.isEmpty else { return }
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedQuery.isEmpty {
+            libraryPlaybackQueue = .fullLibrary
+        } else {
+            libraryPlaybackQueue = .filtered(
+                query: trimmedQuery,
+                count: tracks.count
+            )
+        }
+        controller.playTracks(trackIDs)
+        delayedFetch()
+    }
+
+    func requestMetadataForTracks(_ trackIDs: [URL]) {
+        controller.requestMetadata(for: trackIDs)
+    }
+
+    func matchesLibraryTrack(_ track: LibraryTrack, query: String) -> Bool {
+        let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        guard !normalized.isEmpty else { return true }
+        guard let searchable = librarySearchIndex[track.id] else {
+            return false
+        }
+        return searchable.contains(normalized)
     }
 
     func restoreLastPlaybackOnLaunchIfNeeded() {
@@ -446,6 +492,23 @@ class PlaybackModel: ObservableObject {
             self.longFormInfo = nil
             self.currentTrackID = nil
         }
+    }
+
+    private func rebuildLibrarySearchIndex(with tracks: [LibraryTrack]) {
+        var nextIndex: [URL: String] = [:]
+        nextIndex.reserveCapacity(tracks.count)
+
+        for track in tracks {
+            nextIndex[track.id] = [
+                track.title,
+                track.artist,
+                track.album ?? "",
+            ]
+            .joined(separator: " ")
+            .lowercased()
+        }
+
+        librarySearchIndex = nextIndex
     }
 
     private func persistLastPlaybackSnapshot(from info: PlaybackInfo) {
