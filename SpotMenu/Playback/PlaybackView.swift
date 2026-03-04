@@ -37,7 +37,7 @@ struct PlaybackView: View {
                 artist: "Live Stream",
                 url: URL(
                     string:
-                        "https://n39a-eu.rcs.revma.com/10q3enqxbfhvv?rj-ttl=5&rj-tok=AAABnLZzfw8ASa_yyCYLNy3gcg"
+                        "https://n39a-eu.rcs.revma.com/10q3enqxbfhvv"
                 )!,
                 iconAssetName: "DromosIcon"
             )
