@@ -78,6 +78,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             contentView: playbackView,
             size: playbackAppearancePreferencesModel.popoverSize
         )
+        popoverManager.onVisibilityChanged = { [weak self] isVisible in
+            self?.updatePlayPauseShortcutRegistration(isPopoverVisible: isVisible)
+        }
         popoverManager.setSeekHandlers(onSeekForward: { [weak self] in
             self?.playbackModel.seek(by: 10)
         }, onSeekBackward: { [weak self] in
@@ -103,6 +106,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         configurePlaybackShortcutDefaults()
         setupKeyboardShortcuts()
+        updatePlayPauseShortcutRegistration(isPopoverVisible: false)
         updateStatusItem()
 
         menuBarPreferencesModelCancellable = menuBarPreferencesModel
@@ -255,6 +259,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 self?.updateStatusItem()
             }
+        }
+    }
+
+    private func updatePlayPauseShortcutRegistration(isPopoverVisible: Bool) {
+        if isPopoverVisible {
+            KeyboardShortcuts.enable(.playPause)
+        } else {
+            KeyboardShortcuts.disable(.playPause)
         }
     }
 

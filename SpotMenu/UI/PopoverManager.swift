@@ -4,6 +4,7 @@ import SwiftUI
 class PopoverManager {
     private var window: PopoverWindow
     private weak var lastAnchorButton: NSStatusBarButton?
+    var onVisibilityChanged: ((Bool) -> Void)?
 
     var isVisible: Bool {
         window.isVisible
@@ -46,6 +47,7 @@ class PopoverManager {
         positionWindow(relativeTo: button)
         window.alphaValue = 0
         window.makeKeyAndOrderFront(nil)
+        onVisibilityChanged?(true)
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.2
@@ -82,6 +84,7 @@ class PopoverManager {
         } completionHandler: {
             self.window.orderOut(nil)
             self.window.alphaValue = 1
+            self.onVisibilityChanged?(false)
         }
     }
 }
