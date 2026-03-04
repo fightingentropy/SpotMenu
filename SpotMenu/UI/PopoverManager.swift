@@ -5,6 +5,7 @@ class PopoverManager {
     private var window: PopoverWindow
     private weak var lastAnchorButton: NSStatusBarButton?
     var onVisibilityChanged: ((Bool) -> Void)?
+    var onEscapePressed: (() -> Void)?
 
     var isVisible: Bool {
         window.isVisible
@@ -12,6 +13,9 @@ class PopoverManager {
 
     init<Content: View>(contentView: Content, size: CGSize) {
         self.window = PopoverWindow(rootView: contentView, size: size)
+        self.window.onEscape = { [weak self] in
+            self?.dismiss(triggeredByEscape: true)
+        }
     }
 
     func toggle(relativeTo button: NSStatusBarButton?) {
@@ -76,7 +80,7 @@ class PopoverManager {
         window.setFrameOrigin(NSPoint(x: popoverX, y: popoverY))
     }
 
-    func dismiss() {
+    func dismiss(triggeredByEscape: Bool = false) {
         guard window.isVisible else { return }
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.2
@@ -84,6 +88,9 @@ class PopoverManager {
         } completionHandler: {
             self.window.orderOut(nil)
             self.window.alphaValue = 1
+            if triggeredByEscape {
+                self.onEscapePressed?()
+            }
             self.onVisibilityChanged?(false)
         }
     }

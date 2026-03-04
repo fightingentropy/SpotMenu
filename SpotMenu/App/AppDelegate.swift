@@ -47,6 +47,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isStatusItemWidthUpdateScheduled = false
     private var shouldAbortLaunch = false
     private var reopenObserver: NSObjectProtocol?
+    private var appToRefocusAfterEscape: NSRunningApplication?
+    private var foregroundAppObserver: NSObjectProtocol?
+    private var lastNonSpotMenuFrontmostApp: NSRunningApplication?
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         if activateExistingInstanceIfNeeded() {
@@ -97,6 +100,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popoverManager.onVisibilityChanged = { [weak self] isVisible in
             self?.updatePlayPauseShortcutRegistration(isPopoverVisible: isVisible)
         }
+        popoverManager.onEscapePressed = { [weak self] in
+            self?.restoreFocusAfterEscapeDismiss()
+        }
         popoverManager.setSeekHandlers(onSeekForward: { [weak self] in
             self?.playbackModel.seek(by: 10)
         }, onSeekBackward: { [weak self] in
@@ -125,6 +131,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         updatePlayPauseShortcutRegistration(isPopoverVisible: false)
         updateStatusItem()
         setupReopenObserver()
+        setupForegroundAppTracking()
 
         menuBarPreferencesModelCancellable = menuBarPreferencesModel
             .objectWillChange.sink { [weak self] _ in
@@ -176,6 +183,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if let reopenObserver {
             DistributedNotificationCenter.default().removeObserver(reopenObserver)
+        }
+        if let foregroundAppObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(
+                foregroundAppObserver
+            )
         }
         menuBarPreferencesModelCancellable?.cancel()
         musicPlayerPreferencesModelCancellable?.cancel()
@@ -369,8 +381,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        captureAppToRefocusAfterEscape()
         popoverManager.toggle(relativeTo: button)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func captureAppToRefocusAfterEscape() {
+        let currentPID = ProcessInfo.processInfo.processIdentifier
+        guard
+            let frontmost = NSWorkspace.shared.frontmostApplication,
+            frontmost.processIdentifier != currentPID
+        else {
+            appToRefocusAfterEscape = lastNonSpotMenuFrontmostApp
+            return
+        }
+
+        appToRefocusAfterEscape = frontmost
+    }
+
+    private func restoreFocusAfterEscapeDismiss() {
+        defer { appToRefocusAfterEscape = nil }
+        guard let app = appToRefocusAfterEscape else { return }
+        guard !app.isTerminated else { return }
+        app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
     }
 
     private func handleRightClick(event: NSEvent) {
@@ -474,6 +507,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             self?.showPopoverIfHidden()
         }
+    }
+
+    private func setupForegroundAppTracking() {
+        let currentPID = ProcessInfo.processInfo.processIdentifier
+        if let frontmost = NSWorkspace.shared.frontmostApplication,
+            frontmost.processIdentifier != currentPID
+        {
+            lastNonSpotMenuFrontmostApp = frontmost
+        }
+
+        foregroundAppObserver = NSWorkspace.shared.notificationCenter
+            .addObserver(
+                forName: NSWorkspace.didActivateApplicationNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                guard let self else { return }
+                let currentPID = ProcessInfo.processInfo.processIdentifier
+                guard
+                    let app =
+                        notification.userInfo?[NSWorkspace.applicationUserInfoKey]
+                        as? NSRunningApplication,
+                    app.processIdentifier != currentPID
+                else { return }
+
+                self.lastNonSpotMenuFrontmostApp = app
+            }
     }
 
 }

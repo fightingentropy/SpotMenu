@@ -4,6 +4,7 @@ import SwiftUI
 class PopoverWindow: NSPanel {
     var onSeekForward: (() -> Void)?
     var onSeekBackward: (() -> Void)?
+    var onEscape: (() -> Void)?
 
     init<Content: View>(rootView: Content, size: CGSize) {
         let hostingView = NSHostingView(rootView: rootView)
@@ -45,11 +46,32 @@ class PopoverWindow: NSPanel {
     }
 
     override func sendEvent(_ event: NSEvent) {
+        if handleEscapeKeyEvent(event) {
+            return
+        }
+
         if handleSeekKeyEvent(event) {
             return
         }
 
         super.sendEvent(event)
+    }
+
+    private func handleEscapeKeyEvent(_ event: NSEvent) -> Bool {
+        guard event.type == .keyDown else {
+            return false
+        }
+
+        guard event.keyCode == 53 else {
+            return false
+        }
+
+        guard !(firstResponder is NSTextView) else {
+            return false
+        }
+
+        onEscape?()
+        return true
     }
 
     private func handleSeekKeyEvent(_ event: NSEvent) -> Bool {
