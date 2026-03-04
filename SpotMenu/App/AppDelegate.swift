@@ -3,6 +3,10 @@ import KeyboardShortcuts
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private static let reopenPopoverNotification = Notification.Name(
+        "com.github.kmikiy.SpotMenu.reopenPopover"
+    )
+
     private struct StatusItemRenderSnapshot: Equatable {
         let artist: String
         let title: String
@@ -41,8 +45,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var isUsingCustomStatusView = false
     private var lastStatusItemRenderSnapshot: StatusItemRenderSnapshot?
     private var isStatusItemWidthUpdateScheduled = false
+    private var shouldAbortLaunch = false
+    private var reopenObserver: NSObjectProtocol?
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        if activateExistingInstanceIfNeeded() {
+            shouldAbortLaunch = true
+            DispatchQueue.main.async {
+                NSApp.terminate(nil)
+            }
+        }
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        guard !shouldAbortLaunch else { return }
         NSApp.setActivationPolicy(.accessory)
 
         playbackModel = PlaybackModel(preferences: musicPlayerPreferencesModel)
@@ -108,6 +124,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupKeyboardShortcuts()
         updatePlayPauseShortcutRegistration(isPopoverVisible: false)
         updateStatusItem()
+        setupReopenObserver()
 
         menuBarPreferencesModelCancellable = menuBarPreferencesModel
             .objectWillChange.sink { [weak self] _ in
@@ -142,12 +159,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    func applicationShouldHandleReopen(
+        _ sender: NSApplication,
+        hasVisibleWindows flag: Bool
+    ) -> Bool {
+        showPopoverIfHidden()
+        return false
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
         }
         if let observer = playbackUpdateObserver {
             NotificationCenter.default.removeObserver(observer)
+        }
+        if let reopenObserver {
+            DistributedNotificationCenter.default().removeObserver(reopenObserver)
         }
         menuBarPreferencesModelCancellable?.cancel()
         musicPlayerPreferencesModelCancellable?.cancel()
@@ -334,6 +362,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popoverManager.toggle(relativeTo: statusItem.button)
     }
 
+    private func showPopoverIfHidden() {
+        guard let button = statusItem.button else { return }
+        if popoverManager.isVisible {
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        popoverManager.toggle(relativeTo: button)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
     private func handleRightClick(event: NSEvent) {
         guard let button = statusItem.button,
             button.frame.contains(
@@ -399,6 +438,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func quitApp() {
         NSApp.terminate(nil)
+    }
+
+    private func activateExistingInstanceIfNeeded() -> Bool {
+        guard
+            let bundleIdentifier = Bundle.main.bundleIdentifier
+        else { return false }
+
+        let currentProcessIdentifier = ProcessInfo.processInfo.processIdentifier
+        let runningInstances = NSRunningApplication.runningApplications(
+            withBundleIdentifier: bundleIdentifier
+        )
+        guard
+            let existingInstance = runningInstances.first(where: {
+                $0.processIdentifier != currentProcessIdentifier
+            })
+        else { return false }
+
+        DistributedNotificationCenter.default().postNotificationName(
+            Self.reopenPopoverNotification,
+            object: bundleIdentifier,
+            userInfo: nil,
+            options: [.deliverImmediately]
+        )
+        existingInstance.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        return true
+    }
+
+    private func setupReopenObserver() {
+        guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
+        reopenObserver = DistributedNotificationCenter.default().addObserver(
+            forName: Self.reopenPopoverNotification,
+            object: bundleIdentifier,
+            queue: .main
+        ) { [weak self] _ in
+            self?.showPopoverIfHidden()
+        }
     }
 
 }
