@@ -107,7 +107,7 @@ class PlaybackAppearancePreferencesModel: ObservableObject {
 
     var popoverSize: CGSize {
         if showExpandedLibraryView {
-            return CGSize(width: 380, height: 760)
+            return CGSize(width: 360, height: 620)
         }
         return CGSize(width: 300, height: 300)
     }

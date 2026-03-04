@@ -2,6 +2,15 @@ import Combine
 import Foundation
 
 class MusicPlayerPreferencesModel: ObservableObject {
+    @Published var resumeLastPlaybackOnLaunch: Bool {
+        didSet {
+            UserDefaults.standard.set(
+                resumeLastPlaybackOnLaunch,
+                forKey: "musicPlayer.resumeLastPlaybackOnLaunch"
+            )
+        }
+    }
+
     @Published var likingEnabled: Bool {
         didSet {
             UserDefaults.standard.set(
@@ -40,6 +49,13 @@ class MusicPlayerPreferencesModel: ObservableObject {
 
     init() {
         let defaults = UserDefaults.standard
+
+        let resumeDefault = defaults.object(
+            forKey: "musicPlayer.launchInStreamsWithDromos"
+        ) as? Bool ?? true
+        resumeLastPlaybackOnLaunch =
+            defaults.object(forKey: "musicPlayer.resumeLastPlaybackOnLaunch")
+            as? Bool ?? resumeDefault
 
         likingEnabled =
             defaults.object(forKey: "musicPlayer.likingEnabled") as? Bool ?? true

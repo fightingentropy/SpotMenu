@@ -15,7 +15,7 @@ struct SpotMenuApp: App {
         .commands {
             // Replace default Settings command with our custom implementation
             CommandGroup(replacing: .appSettings) {
-                Button("Preferences...") {
+                Button("Settings…") {
                     appDelegate.preferencesAction()
                 }
                 .keyboardShortcut(",", modifiers: .command)

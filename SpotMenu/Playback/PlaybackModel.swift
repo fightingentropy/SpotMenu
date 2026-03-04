@@ -88,6 +88,15 @@ struct LibraryTrack: Identifiable, Equatable {
     let image: Image?
 }
 
+struct StreamStation: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let artist: String
+    let url: URL
+    let iconAssetName: String?
+}
+
 protocol MusicPlayerController {
     func fetchNowPlayingInfo() -> PlaybackInfo?
     func togglePlayPause()
@@ -116,6 +125,38 @@ extension MusicPlayerController {
 }
 
 class PlaybackModel: ObservableObject {
+    private enum LastPlaybackSource: String {
+        case stream
+        case libraryTrack
+    }
+
+    private struct LastPlaybackSnapshot {
+        let source: LastPlaybackSource
+        let trackID: URL
+        let title: String
+        let artist: String
+        let currentTime: Double
+        let imageAssetName: String?
+    }
+
+    private enum LastPlaybackStorageKey {
+        static let source = "playback.last.source"
+        static let trackID = "playback.last.trackID"
+        static let title = "playback.last.title"
+        static let artist = "playback.last.artist"
+        static let currentTime = "playback.last.currentTime"
+        static let imageAssetName = "playback.last.imageAssetName"
+    }
+
+    static let dromosStream = StreamStation(
+        id: "dromos-fm",
+        title: "Dromos FM",
+        subtitle: "Live Radio",
+        artist: "Live Stream",
+        url: URL(string: "https://n39a-eu.rcs.revma.com/10q3enqxbfhvv")!,
+        iconAssetName: "DromosIcon"
+    )
+
     @Published var imageURL: URL?
     @Published var image: Image? = nil
     @Published var isPlaying: Bool = false
@@ -148,6 +189,15 @@ class PlaybackModel: ObservableObject {
 
     var supportsLibraryBrowser: Bool {
         return true
+    }
+
+    var streams: [StreamStation] {
+        [Self.dromosStream]
+    }
+
+    var shouldOpenStreamsOnLaunch: Bool {
+        guard preferences.resumeLastPlaybackOnLaunch else { return false }
+        return loadLastPlaybackSnapshot()?.source == .stream
     }
 
     init(preferences: MusicPlayerPreferencesModel) {
@@ -213,6 +263,7 @@ class PlaybackModel: ObservableObject {
             self.longFormInfo = info.longFormInfo
             self.currentTrackID = info.trackID
             self.isShuffleEnabled = self.controller.isShuffleEnabled()
+            self.persistLastPlaybackSnapshot(from: info)
 
             NotificationCenter.default.post(
                 name: .contentModelDidUpdate,
@@ -347,6 +398,28 @@ class PlaybackModel: ObservableObject {
         delayedFetch()
     }
 
+    func restoreLastPlaybackOnLaunchIfNeeded() {
+        guard preferences.resumeLastPlaybackOnLaunch else { return }
+        guard currentTrackID == nil else { return }
+        guard let snapshot = loadLastPlaybackSnapshot() else { return }
+
+        switch snapshot.source {
+        case .stream:
+            playStream(
+                url: snapshot.trackID,
+                title: snapshot.title,
+                artist: snapshot.artist,
+                imageAssetName: snapshot.imageAssetName
+            )
+        case .libraryTrack:
+            controller.playTrack(snapshot.trackID)
+            if snapshot.currentTime > 0 {
+                controller.updatePlaybackPosition(to: snapshot.currentTime)
+            }
+            delayedFetch()
+        }
+    }
+
     private func delayedFetch() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             self.fetchInfo()
@@ -373,6 +446,53 @@ class PlaybackModel: ObservableObject {
             self.longFormInfo = nil
             self.currentTrackID = nil
         }
+    }
+
+    private func persistLastPlaybackSnapshot(from info: PlaybackInfo) {
+        guard let trackID = info.trackID else { return }
+
+        let source: LastPlaybackSource = trackID.isFileURL
+            ? .libraryTrack : .stream
+        let imageAssetName = stream(for: trackID)?.iconAssetName
+
+        let defaults = UserDefaults.standard
+        defaults.set(source.rawValue, forKey: LastPlaybackStorageKey.source)
+        defaults.set(trackID.absoluteString, forKey: LastPlaybackStorageKey.trackID)
+        defaults.set(info.title, forKey: LastPlaybackStorageKey.title)
+        defaults.set(info.artist, forKey: LastPlaybackStorageKey.artist)
+        defaults.set(max(info.currentTime, 0), forKey: LastPlaybackStorageKey.currentTime)
+        defaults.set(imageAssetName, forKey: LastPlaybackStorageKey.imageAssetName)
+    }
+
+    private func loadLastPlaybackSnapshot() -> LastPlaybackSnapshot? {
+        let defaults = UserDefaults.standard
+
+        guard
+            let sourceRaw = defaults.string(forKey: LastPlaybackStorageKey.source),
+            let source = LastPlaybackSource(rawValue: sourceRaw),
+            let trackIDRaw = defaults.string(forKey: LastPlaybackStorageKey.trackID),
+            let trackID = URL(string: trackIDRaw)
+        else {
+            return nil
+        }
+
+        let title = defaults.string(forKey: LastPlaybackStorageKey.title) ?? ""
+        let artist = defaults.string(forKey: LastPlaybackStorageKey.artist) ?? "Live Stream"
+        let currentTime = defaults.double(forKey: LastPlaybackStorageKey.currentTime)
+        let imageAssetName = defaults.string(forKey: LastPlaybackStorageKey.imageAssetName)
+
+        return LastPlaybackSnapshot(
+            source: source,
+            trackID: trackID,
+            title: title.isEmpty ? "Live Stream" : title,
+            artist: artist.isEmpty ? "Live Stream" : artist,
+            currentTime: max(currentTime, 0),
+            imageAssetName: imageAssetName
+        )
+    }
+
+    private func stream(for url: URL) -> StreamStation? {
+        streams.first { $0.url == url }
     }
 
     private func computeDisplayText(from info: PlaybackInfo)

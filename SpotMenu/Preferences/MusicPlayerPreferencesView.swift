@@ -11,6 +11,17 @@ struct MusicPlayerPreferencesView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Form {
                     Section {
+                        Toggle(
+                            "Resume last playback on launch",
+                            isOn: $model.resumeLastPlaybackOnLaunch
+                        )
+                    } footer: {
+                        Text(
+                            "When enabled, SpotMenu continues whatever was last playing (stream or song) when the app opens."
+                        )
+                    }
+
+                    Section {
                         HStack {
                             Text("Current Folder")
                             Spacer()

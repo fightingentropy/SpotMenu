@@ -3,12 +3,12 @@
     <channel>
         <title>SpotMenu</title>
         <item>
-            <title>2.3.2</title>
-            <pubDate>Wed, 04 Mar 2026 10:00:51 +0000</pubDate>
-            <sparkle:version>2.3.2</sparkle:version>
-            <sparkle:shortVersionString>2.3.2</sparkle:shortVersionString>
+            <title>2.3.3</title>
+            <pubDate>Wed, 04 Mar 2026 10:24:18 +0000</pubDate>
+            <sparkle:version>2.3.3</sparkle:version>
+            <sparkle:shortVersionString>2.3.3</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/fightingentropy/SpotMenu/releases/download/v2.3.2/SpotMenu.app.zip" length="2884216" type="application/octet-stream" sparkle:edSignature="5fiQ9nsBgKiZx7SNdyIl/0ikyV+Cx2v8gbXXxNTRDrXKj4CNoulEvFxrl1BH9WvqMjPK3/manCC0usC/c8IqAg=="/>
+            <enclosure url="https://github.com/fightingentropy/SpotMenu/releases/download/v2.3.3/SpotMenu.app.zip" length="2895471" type="application/octet-stream" sparkle:edSignature="bKyCil4LY/7S5UQyh4waXiGWJ4HGfPmN2hlhRWA6WEPb+D6OlrIFFcyDNaM+fiFH2/PvcY/x/29Q/coqAkBlAA=="/>
         </item>
     </channel>
 </rss>

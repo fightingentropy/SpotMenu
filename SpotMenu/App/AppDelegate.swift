@@ -128,6 +128,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     self.playbackAppearancePreferencesModel.popoverSize
                 )
             }
+
+        playbackModel.restoreLastPlaybackOnLaunchIfNeeded()
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {

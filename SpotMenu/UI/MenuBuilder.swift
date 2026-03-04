@@ -13,7 +13,7 @@ final class MenuBuilder {
         )
         menu.addItem(
             NSMenuItem(
-                title: "Preferences…",
+                title: "Settings…",
                 action: #selector(delegate.preferencesAction),
                 keyEquivalent: ","
             )

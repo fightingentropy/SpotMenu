@@ -8,40 +8,32 @@ struct PlaybackView: View {
         case streams
     }
 
-    private struct StreamItem: Identifiable {
-        let id = UUID()
-        let title: String
-        let subtitle: String
-        let artist: String
-        let url: URL
-        let iconAssetName: String?
-    }
-
     @ObservedObject var model: PlaybackModel
     @ObservedObject var preferences: PlaybackAppearancePreferencesModel
     @ObservedObject var musicPlayerPreferencesModel: MusicPlayerPreferencesModel
     @State private var isHovering = false
     @State private var librarySearchText = ""
-    @State private var selectedCategory: LibraryCategory = .library
+    @State private var selectedCategory: LibraryCategory
     @Environment(\.colorScheme) private var systemColorScheme
 
     private var compactDimension: CGFloat { 300 }
     private var expandedWidth: CGFloat { preferences.popoverSize.width }
     private var expandedHeight: CGFloat { preferences.popoverSize.height }
+    private var expandedHeroHeight: CGFloat { 260 }
     private var metadataTextHeight: CGFloat { 46 }
-    private var streams: [StreamItem] {
-        [
-            StreamItem(
-                title: "Dromos FM",
-                subtitle: "Live Radio",
-                artist: "Live Stream",
-                url: URL(
-                    string:
-                        "https://n39a-eu.rcs.revma.com/10q3enqxbfhvv"
-                )!,
-                iconAssetName: "DromosIcon"
-            )
-        ]
+
+    init(
+        model: PlaybackModel,
+        preferences: PlaybackAppearancePreferencesModel,
+        musicPlayerPreferencesModel: MusicPlayerPreferencesModel
+    ) {
+        self.model = model
+        self.preferences = preferences
+        self.musicPlayerPreferencesModel = musicPlayerPreferencesModel
+        _selectedCategory = State(
+            initialValue: model.shouldOpenStreamsOnLaunch
+                ? .streams : .library
+        )
     }
 
     private var filteredLibraryTracks: [LibraryTrack] {
@@ -103,7 +95,7 @@ struct PlaybackView: View {
 
                 expandedHeroContent
             }
-            .frame(width: expandedWidth - 20, height: compactDimension)
+            .frame(width: expandedWidth - 20, height: expandedHeroHeight)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
             libraryContent
@@ -120,7 +112,7 @@ struct PlaybackView: View {
 
     @ViewBuilder
     private var compactContent: some View {
-        let blurRadius = isHovering ? preferences.blurIntensity * 10 : 0
+        let blurRadius = isHovering ? preferences.blurIntensity * 6 : 0
         let overlayColor =
             isHovering
             ? adaptiveHoverTintColor.opacity(preferences.hoverTintOpacity)
@@ -139,7 +131,7 @@ struct PlaybackView: View {
     }
 
     private var expandedHeroContent: some View {
-        let blurRadius = preferences.blurIntensity * 10
+        let blurRadius = preferences.blurIntensity * 6
         let overlayColor = adaptiveHoverTintColor.opacity(
             max(preferences.hoverTintOpacity, 0.28)
         )
@@ -147,7 +139,7 @@ struct PlaybackView: View {
         return ZStack {
             artworkBackground(
                 width: expandedWidth - 20,
-                height: compactDimension,
+                height: expandedHeroHeight,
                 blurRadius: blurRadius,
                 overlayColor: overlayColor
             )
@@ -207,7 +199,7 @@ struct PlaybackView: View {
             if selectedCategory == .streams {
                 ScrollView {
                     LazyVStack(spacing: 8) {
-                        ForEach(streams) { stream in
+                        ForEach(model.streams) { stream in
                             streamRow(stream)
                         }
                     }
@@ -264,7 +256,7 @@ struct PlaybackView: View {
         )
     }
 
-    private func streamRow(_ stream: StreamItem) -> some View {
+    private func streamRow(_ stream: StreamStation) -> some View {
         let isCurrentStream = model.currentTrackID == stream.url
 
         return Button(action: {
@@ -281,23 +273,23 @@ struct PlaybackView: View {
         }) {
             HStack(spacing: 10) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(trackRowBackgroundColor.opacity(0.9))
-
                     if let iconAssetName = stream.iconAssetName,
                         NSImage(named: iconAssetName) != nil
                     {
                         Image(iconAssetName)
                             .resizable()
-                            .scaledToFit()
-                            .frame(width: 24, height: 24)
+                            .scaledToFill()
+                            .frame(width: 48, height: 48)
                             .clipShape(
                                 RoundedRectangle(
-                                    cornerRadius: 5,
+                                    cornerRadius: 10,
                                     style: .continuous
                                 )
                             )
                     } else {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(trackRowBackgroundColor.opacity(0.9))
+
                         Image(systemName: "dot.radiowaves.left.and.right")
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(
@@ -450,6 +442,12 @@ struct PlaybackView: View {
         return Color.black.opacity(0.08)
     }
 
+    private var shouldFitArtworkInsideFrame: Bool {
+        guard model.imageURL == nil, model.image != nil else { return false }
+        guard let trackID = model.currentTrackID else { return false }
+        return !trackID.isFileURL
+    }
+
     @ViewBuilder
     private func artworkBackground(
         width: CGFloat,
@@ -472,15 +470,27 @@ struct PlaybackView: View {
                 }
             }
         } else if let fallbackImage = model.image {
-            fallbackImage
-                .resizable()
-                .scaledToFill()
-                .frame(width: width, height: height)
-                .clipped()
-                .blur(radius: blurRadius)
-                .overlay {
-                    artworkOverlay(customColor: overlayColor)
-                }
+            if shouldFitArtworkInsideFrame {
+                fallbackImage
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: width * 0.93, height: height * 0.93)
+                    .frame(width: width, height: height)
+                    .background(Color.black.opacity(0.18))
+                    .overlay {
+                        artworkOverlay(customColor: overlayColor)
+                    }
+            } else {
+                fallbackImage
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: width, height: height)
+                    .clipped()
+                    .blur(radius: blurRadius)
+                    .overlay {
+                        artworkOverlay(customColor: overlayColor)
+                    }
+            }
         } else {
             ZStack {
                 Color.clear
@@ -500,7 +510,7 @@ struct PlaybackView: View {
 
     @ViewBuilder
     private func artworkOverlay(customColor: Color?) -> some View {
-        Color.black.opacity(0.34)
+        Color.black.opacity(0.5)
         if let customColor {
             customColor
         }
@@ -567,7 +577,7 @@ struct PlaybackView: View {
             .padding(.trailing, 30)
             .padding(.bottom, 24)
 
-            VStack(spacing: 12) {
+            VStack(spacing: 10) {
                 Text(model.artist)
                     .font(.title3)
                     .foregroundColor(preferences.foregroundColor.color)
@@ -584,19 +594,19 @@ struct PlaybackView: View {
                 HStack(spacing: 10) {
                     tappableIconButton(
                         imageName: "backward.fill",
-                        imageSize: 30
+                        imageSize: 24
                     ) {
                         model.skipBack()
                     }
 
                     tappableIconButton(
                         imageName: model.isPlaying ? "pause.fill" : "play.fill",
-                        imageSize: 40
+                        imageSize: 32
                     ) {
                         model.togglePlayPause()
                     }
 
-                    tappableIconButton(imageName: "forward.fill", imageSize: 30)
+                    tappableIconButton(imageName: "forward.fill", imageSize: 24)
                     {
                         model.skipForward()
                     }
@@ -692,7 +702,7 @@ struct PlaybackView: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.bottom, 16)
+            .padding(.bottom, 20)
         }
         .padding(.horizontal)
         .transition(.opacity)
@@ -752,8 +762,8 @@ func tappableIconButton(
             .resizable()
             .scaledToFit()
             .frame(width: imageSize, height: imageSize)
-            .frame(width: 44, height: 44)
-            .padding(16)
+            .frame(width: 36, height: 36)
+            .padding(10)
             .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
