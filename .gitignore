@@ -14,3 +14,5 @@ website/dist/
 SpotMenuReleases
 .build
 .derivedData
+build-*/
+release/*.zip
