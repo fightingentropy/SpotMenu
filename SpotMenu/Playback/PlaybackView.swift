@@ -32,9 +32,9 @@ struct PlaybackView: View {
     private var streams: [StreamItem] {
         [
             StreamItem(
-                title: "Dromos.gr",
+                title: "dromos fm",
                 subtitle: "n39a-eu.rcs.revma.com",
-                artist: "Live Stream",
+                artist: "",
                 url: URL(
                     string:
                         "https://n39a-eu.rcs.revma.com/10q3enqxbfhvv?rj-ttl=5&rj-tok=AAABnLZzfw8ASa_yyCYLNy3gcg"
