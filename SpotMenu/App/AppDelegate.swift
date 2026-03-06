@@ -45,6 +45,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var playbackAppearanceCancellable: AnyCancellable?
     var librarySearchFocusCancellable: AnyCancellable?
     var isUsingCustomStatusView = false
+    var nowPlayingController: NowPlayingController?
     private var lastStatusItemRenderSnapshot: StatusItemRenderSnapshot?
     private var isStatusItemWidthUpdateScheduled = false
     private var shouldAbortLaunch = false
@@ -65,6 +66,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         _ = UpdaterManager.shared
 
         playbackModel = PlaybackModel(preferences: musicPlayerPreferencesModel)
+        nowPlayingController = NowPlayingController(playbackModel: playbackModel)
 
         // Configure status item and button
         statusItem = NSStatusBar.system.statusItem(
@@ -102,6 +104,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak self] _ in
             self?.updateStatusItem()
+            Task { @MainActor [weak self] in
+                guard let self, let playbackModel = self.playbackModel else {
+                    return
+                }
+                self.nowPlayingController?.update(from: playbackModel)
+            }
         }
 
         // Set up popover manager
@@ -159,6 +167,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupKeyboardShortcuts()
         updatePlayPauseShortcutRegistration(isPopoverVisible: false)
         updateStatusItem()
+        nowPlayingController?.update(from: playbackModel)
         setupReopenObserver()
 
         menuBarPreferencesModelCancellable = menuBarPreferencesModel

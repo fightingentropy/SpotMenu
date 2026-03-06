@@ -524,6 +524,7 @@ class PlaybackModel: ObservableObject {
             self.isLiked = nil
             self.longFormInfo = nil
             self.currentTrackID = nil
+            self.notifyModelUpdate()
         }
     }
 
