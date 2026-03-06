@@ -1,0 +1,63 @@
+{
+  "buildCommand" : {
+    "command" : "build",
+    "skipDependencies" : false,
+    "style" : "buildOnly"
+  },
+  "configuredTargets" : [
+    {
+      "guid" : "6370c6b61b088c270c7923b1d9fb48aeb2937b88951a35a2cf0d4325e01797fb"
+    }
+  ],
+  "containerPath" : "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/Sparkle.xcodeproj",
+  "continueBuildingAfterErrors" : false,
+  "dependencyScope" : "workspace",
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "arm64",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : false,
+      "platform" : "macosx",
+      "sdk" : "macosx26.2",
+      "sdkVariant" : "macos",
+      "supportedArchitectures" : [
+        "arm64e",
+        "arm64",
+        "x86_64"
+      ],
+      "targetArchitecture" : "arm64"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Products",
+      "derivedDataPath" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools",
+      "indexDataStoreFolderPath" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Index.noindex/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Index.noindex/PrecompiledHeaders",
+      "pchPath" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Release",
+    "overrides" : {
+      "commandLine" : {
+        "table" : {
+
+        }
+      },
+      "synthesized" : {
+        "table" : {
+          "ACTION" : "build",
+          "ENABLE_PREVIEWS" : "NO",
+          "ENABLE_XOJIT_PREVIEWS" : "YES"
+        }
+      }
+    }
+  },
+  "schemeCommand" : "launch",
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}

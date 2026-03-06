@@ -1,0 +1,136 @@
+{
+  "source": "/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Playback/SpotifyLoginView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "SpotMenu",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "Back",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "SpotMenu needs access to the Spotify Web API to support liking tracks. AppleScript doesn't support liking on Spotify, so we use the Web API.",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "Spotify only allows this if you create your own developer app. Normally this requires 250k monthly users and being a legal entity. But creating your own app bypasses this limit.",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "Don’t worry. We’ll guide you through it step-by-step.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 165
+        }
+      },
+      {
+        "comment": "",
+        "key": "I'm scared, just turn it off instead",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "Let’s go",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 180
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter Spotify Client ID",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 206
+        }
+      },
+      {
+        "comment": "",
+        "key": "Don't have one? Follow these steps:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "1. Visit ",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 235
+        }
+      },
+      {
+        "comment": "",
+        "key": "developer.spotify.com/dashboard",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 249
+        }
+      },
+      {
+        "comment": "",
+        "key": "4. Set this redirect URI:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 271
+        }
+      },
+      {
+        "comment": "",
+        "key": "com.github.kmikiy.spotmenu://callback",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 278
+        }
+      },
+      {
+        "comment": "",
+        "key": "You can close this window.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 360
+        }
+      },
+      {
+        "comment": "",
+        "key": "You're now logged in to Spotify.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 355
+        }
+      },
+      {
+        "comment": "",
+        "key": "Continue with Spotify",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 376
+        }
+      }
+    ]
+  },
+  "version": 1
+}

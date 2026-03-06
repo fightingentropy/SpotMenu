@@ -1,0 +1,200 @@
+{
+  "source": "/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Preferences/MenuBarPreferencesView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Display Artist",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide Artist When Paused",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 32
+        }
+      },
+      {
+        "comment": "",
+        "key": "Display Title",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide Title When Paused",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 46
+        }
+      },
+      {
+        "comment": "",
+        "key": "Text Display",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose which text information to display in the menu bar.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show Liked Icon",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "Display App Icon",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "Icons",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "If nothing is currently visible based on your settings and playback status, the app icon will be shown as a fallback.",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose which icons to display in the menu bar.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Compact View",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "Max Width",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld pt",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "Layout",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adjust the maximum width for the menu bar item.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "Font weight (top row)",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 124
+        }
+      },
+      {
+        "comment": "",
+        "key": "Font weight (bottom row)",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "Font weight",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "Font Weights",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 143
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adjust font weights for the top and bottom rows in compact view.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 146
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adjust font weight for menu bar text in normal view.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 148
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preview",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 175
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maximum width shown. Actual width may be smaller depending on content.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 177
+        }
+      }
+    ]
+  },
+  "version": 1
+}

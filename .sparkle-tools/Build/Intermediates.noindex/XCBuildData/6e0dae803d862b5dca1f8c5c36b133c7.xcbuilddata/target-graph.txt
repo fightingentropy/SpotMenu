@@ -1,0 +1,10 @@
+Target dependency graph (5 targets)
+Target 'generate_appcast' in project 'Sparkle'
+➜ Explicit dependency on target 'bsdiff' in project 'Sparkle'
+➜ Explicit dependency on target 'ed25519' in project 'Sparkle'
+➜ Explicit dependency on target 'ArgumentParser' in project 'swift-argument-parser'
+Target 'ArgumentParser' in project 'swift-argument-parser'
+➜ Explicit dependency on target 'ArgumentParser' in project 'swift-argument-parser'
+Target 'ArgumentParser' in project 'swift-argument-parser' (no dependencies)
+Target 'ed25519' in project 'Sparkle' (no dependencies)
+Target 'bsdiff' in project 'Sparkle' (no dependencies)

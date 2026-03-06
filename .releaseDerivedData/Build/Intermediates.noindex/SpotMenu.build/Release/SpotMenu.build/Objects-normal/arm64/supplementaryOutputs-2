@@ -1,0 +1,12 @@
+{
+  "/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/App/AppDelegate.swift" : {
+    "abi-baseline-json" : "/Users/erlinhoxha/Developer/SpotMenu/.releaseDerivedData/Build/Intermediates.noindex/SpotMenu.build/Release/SpotMenu.build/Objects-normal/arm64/SpotMenu.abi.json",
+    "const-values" : "/Users/erlinhoxha/Developer/SpotMenu/.releaseDerivedData/Build/Intermediates.noindex/SpotMenu.build/Release/SpotMenu.build/Objects-normal/arm64/SpotMenu-primary.swiftconstvalues",
+    "dependencies" : "/Users/erlinhoxha/Developer/SpotMenu/.releaseDerivedData/Build/Intermediates.noindex/SpotMenu.build/Release/SpotMenu.build/Objects-normal/arm64/SpotMenu-primary.d",
+    "diagnostics" : "/Users/erlinhoxha/Developer/SpotMenu/.releaseDerivedData/Build/Intermediates.noindex/SpotMenu.build/Release/SpotMenu.build/Objects-normal/arm64/SpotMenu-primary.dia",
+    "objc-header" : "/Users/erlinhoxha/Developer/SpotMenu/.releaseDerivedData/Build/Intermediates.noindex/SpotMenu.build/Release/SpotMenu.build/Objects-normal/arm64/SpotMenu-Swift.h",
+    "swiftdoc" : "/Users/erlinhoxha/Developer/SpotMenu/.releaseDerivedData/Build/Intermediates.noindex/SpotMenu.build/Release/SpotMenu.build/Objects-normal/arm64/SpotMenu.swiftdoc",
+    "swiftmodule" : "/Users/erlinhoxha/Developer/SpotMenu/.releaseDerivedData/Build/Intermediates.noindex/SpotMenu.build/Release/SpotMenu.build/Objects-normal/arm64/SpotMenu.swiftmodule",
+    "swiftsourceinfo" : "/Users/erlinhoxha/Developer/SpotMenu/.releaseDerivedData/Build/Intermediates.noindex/SpotMenu.build/Release/SpotMenu.build/Objects-normal/arm64/SpotMenu.swiftsourceinfo"
+  }
+}

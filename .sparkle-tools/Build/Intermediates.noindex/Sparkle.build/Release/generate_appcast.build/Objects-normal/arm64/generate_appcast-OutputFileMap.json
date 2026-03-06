@@ -1,0 +1,51 @@
+{
+  "" : {
+    "const-values" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/generate_appcast-primary.swiftconstvalues",
+    "dependencies" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/generate_appcast-primary.d",
+    "diagnostics" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/generate_appcast-primary.dia",
+    "emit-module-dependencies" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/generate_appcast-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/generate_appcast-primary-emit-module.dia",
+    "pch" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/generate_appcast-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/generate_appcast-primary.swiftdeps"
+  },
+  "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/common_cli/secret.swift" : {
+    "index-unit-output-path" : "/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/secret.o",
+    "llvm-bc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/secret.bc",
+    "object" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/secret.o"
+  },
+  "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/generate_appcast/Appcast.swift" : {
+    "index-unit-output-path" : "/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/Appcast.o",
+    "llvm-bc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/Appcast.bc",
+    "object" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/Appcast.o"
+  },
+  "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/generate_appcast/ArchiveItem.swift" : {
+    "index-unit-output-path" : "/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/ArchiveItem.o",
+    "llvm-bc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/ArchiveItem.bc",
+    "object" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/ArchiveItem.o"
+  },
+  "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/generate_appcast/FeedXML.swift" : {
+    "index-unit-output-path" : "/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/FeedXML.o",
+    "llvm-bc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/FeedXML.bc",
+    "object" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/FeedXML.o"
+  },
+  "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/generate_appcast/Signatures.swift" : {
+    "index-unit-output-path" : "/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/Signatures.o",
+    "llvm-bc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/Signatures.bc",
+    "object" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/Signatures.o"
+  },
+  "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/generate_appcast/URL+Hashing.swift" : {
+    "index-unit-output-path" : "/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/URL+Hashing.o",
+    "llvm-bc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/URL+Hashing.bc",
+    "object" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/URL+Hashing.o"
+  },
+  "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/generate_appcast/Unarchive.swift" : {
+    "index-unit-output-path" : "/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/Unarchive.o",
+    "llvm-bc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/Unarchive.bc",
+    "object" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/Unarchive.o"
+  },
+  "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/generate_appcast/main.swift" : {
+    "index-unit-output-path" : "/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/main.o",
+    "llvm-bc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/main.bc",
+    "object" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/arm64/main.o"
+  }
+}

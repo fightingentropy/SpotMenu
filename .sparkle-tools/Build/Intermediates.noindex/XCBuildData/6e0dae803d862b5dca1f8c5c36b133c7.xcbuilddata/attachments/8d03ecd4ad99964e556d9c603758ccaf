@@ -1,0 +1,35 @@
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Completions/BashCompletionsGenerator.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Completions/CompletionsGenerator.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Completions/FishCompletionsGenerator.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Completions/ZshCompletionsGenerator.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Properties/Argument.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Properties/ArgumentHelp.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Properties/CompletionKind.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Properties/Errors.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Properties/Flag.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Properties/NameSpecification.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Properties/Option.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Properties/OptionGroup.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Types/CommandConfiguration.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Types/EnumerableFlag.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Types/ExpressibleByArgument.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Types/ParsableArguments.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Types/ParsableArgumentsValidation.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsable\ Types/ParsableCommand.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/ArgumentDecoder.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/ArgumentDefinition.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/ArgumentSet.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/CommandParser.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/InputOrigin.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/Name.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/Parsed.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/ParsedValues.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/ParserError.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Parsing/SplitArguments.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Usage/HelpCommand.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Usage/HelpGenerator.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Usage/MessageInfo.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Usage/UsageGenerator.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Utilities/SequenceExtensions.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Utilities/StringExtensions.swift
+/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Utilities/Tree.swift

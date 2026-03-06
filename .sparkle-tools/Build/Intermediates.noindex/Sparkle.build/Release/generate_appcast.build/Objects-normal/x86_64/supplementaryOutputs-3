@@ -1,0 +1,12 @@
+{
+  "/Users/erlinhoxha/Developer/SpotMenu/.derivedData/SourcePackages/checkouts/Sparkle/generate_appcast/Appcast.swift" : {
+    "abi-baseline-json" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/x86_64/generate_appcast.abi.json",
+    "const-values" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/x86_64/generate_appcast-primary.swiftconstvalues",
+    "dependencies" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/x86_64/generate_appcast-primary.d",
+    "diagnostics" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/x86_64/generate_appcast-primary.dia",
+    "objc-header" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/x86_64/generate_appcast-Swift.h",
+    "swiftdoc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/x86_64/generate_appcast.swiftdoc",
+    "swiftmodule" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/x86_64/generate_appcast.swiftmodule",
+    "swiftsourceinfo" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/Sparkle.build/Release/generate_appcast.build/Objects-normal/x86_64/generate_appcast.swiftsourceinfo"
+  }
+}

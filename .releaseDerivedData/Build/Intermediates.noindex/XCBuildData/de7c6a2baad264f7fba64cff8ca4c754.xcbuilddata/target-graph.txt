@@ -1,0 +1,11 @@
+Target dependency graph (5 targets)
+Target 'SpotMenu' in project 'SpotMenu'
+➜ Explicit dependency on target 'KeyboardShortcuts' in project 'KeyboardShortcuts'
+➜ Explicit dependency on target 'Sparkle' in project 'Sparkle'
+Target 'Sparkle' in project 'Sparkle' (no dependencies)
+Target 'KeyboardShortcuts' in project 'KeyboardShortcuts'
+➜ Explicit dependency on target 'KeyboardShortcuts' in project 'KeyboardShortcuts'
+➜ Explicit dependency on target 'KeyboardShortcuts_KeyboardShortcuts' in project 'KeyboardShortcuts'
+Target 'KeyboardShortcuts' in project 'KeyboardShortcuts'
+➜ Explicit dependency on target 'KeyboardShortcuts_KeyboardShortcuts' in project 'KeyboardShortcuts'
+Target 'KeyboardShortcuts_KeyboardShortcuts' in project 'KeyboardShortcuts' (no dependencies)

@@ -1,0 +1,32 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>SpotMenu</title>
+        <item>
+            <title>2.3.12</title>
+            <pubDate>Fri, 06 Mar 2026 20:54:20 +0000</pubDate>
+            <link>https://github.com/fightingentropy/SpotMenu</link>
+            <sparkle:version>2.3.12</sparkle:version>
+            <sparkle:shortVersionString>2.3.12</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/fightingentropy/SpotMenu/releases/download/v2.3.12/SpotMenu-2.3.12.app.zip" length="2990515" type="application/octet-stream" sparkle:edSignature="AM5VAcK0wmuafFAkqpCfMZIEjNVajROzyxjpa6BMwqpf7NCbZUQBYYMiMVvtcIk+05VvrAhcbbk7Qz67saI0Dw=="/>
+        </item>
+        <item>
+            <title>2.3.11</title>
+            <pubDate>Fri, 06 Mar 2026 11:48:29 +0000</pubDate>
+            <link>https://github.com/fightingentropy/SpotMenu</link>
+            <sparkle:version>2.3.11</sparkle:version>
+            <sparkle:shortVersionString>2.3.11</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/fightingentropy/SpotMenu/releases/download/v2.3.11/SpotMenu-2.3.11.app.zip" length="2980343" type="application/octet-stream" sparkle:edSignature="imvjsAPOyHsNZbqhOoJlgyyrg+QpySLuhexJtcyqh1lJJE4rG+1OaZyW1DZaFm+09ZPZSLtj25EI9pemCj9+CQ=="/>
+        </item>
+        <item>
+            <title>2.3.10</title>
+            <pubDate>Fri, 06 Mar 2026 11:29:31 +0000</pubDate>
+            <sparkle:version>2.3.10</sparkle:version>
+            <sparkle:shortVersionString>2.3.10</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/fightingentropy/SpotMenu/releases/download/v2.3.10/SpotMenu-2.3.10.app.zip" length="2980350" type="application/octet-stream" sparkle:edSignature="WGSh0XVg0X7+re0qwwvziT7S4YeNZsSNc57rfBmNSynv7/iyc30L1pwkCgrB+GBjLrTymjyvi2YK570JD8kUBw=="/>
+        </item>
+    </channel>
+</rss>

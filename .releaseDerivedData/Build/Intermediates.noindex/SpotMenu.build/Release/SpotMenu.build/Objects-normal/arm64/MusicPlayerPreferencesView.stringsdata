@@ -1,0 +1,64 @@
+{
+  "source": "/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Preferences/MusicPlayerPreferencesView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Resume last playback on launch",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 15
+        }
+      },
+      {
+        "comment": "",
+        "key": "When enabled, SpotMenu continues whatever was last playing (stream or song) when the app opens.",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 20
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Folder",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose Folder…",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reload Library",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Local Music Folder",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "Supported formats: mp3, m4a, aac, wav, aiff, flac, alac, and caf.",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 56
+        }
+      }
+    ]
+  },
+  "version": 1
+}

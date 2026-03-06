@@ -1,0 +1,64 @@
+{
+  "source": "/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Preferences/ShortcutPreferencesView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Playback Controls",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set keyboard shortcuts for opening the player and controlling music playback.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "Like Track",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unlike Track",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "Toggle Like",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "Track Liking",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set keyboard shortcuts for liking and unliking tracks.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 71
+        }
+      }
+    ]
+  },
+  "version": 1
+}

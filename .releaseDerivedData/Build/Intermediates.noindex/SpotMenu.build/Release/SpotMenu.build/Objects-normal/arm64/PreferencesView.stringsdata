@@ -1,0 +1,24 @@
+{
+  "source": "/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Preferences/PreferencesView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Quit SpotMenu",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select a section",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 94
+        }
+      }
+    ]
+  },
+  "version": 1
+}

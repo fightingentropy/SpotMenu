@@ -1,0 +1,80 @@
+{
+  "source": "/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Playback/PlaybackView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Library browser is available in Music Folder mode.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 238
+        }
+      },
+      {
+        "comment": "",
+        "key": "No tracks found in folder.",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 245
+        }
+      },
+      {
+        "comment": "",
+        "key": "No tracks match your search.",
+        "location": {
+          "startingColumn": 83,
+          "startingLine": 245
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld tracks",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 180
+        }
+      },
+      {
+        "comment": "",
+        "key": "Play All",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 187
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search songs",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add to Queue",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 440
+        }
+      },
+      {
+        "comment": "",
+        "key": "Login to enable liking tracks",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 748
+        }
+      },
+      {
+        "comment": "",
+        "key": "Toggle like status",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 732
+        }
+      }
+    ]
+  },
+  "version": 1
+}

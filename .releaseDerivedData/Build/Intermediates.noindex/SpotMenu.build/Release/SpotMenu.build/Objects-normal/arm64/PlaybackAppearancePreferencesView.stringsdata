@@ -1,0 +1,96 @@
+{
+  "source": "/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Preferences/PlaybackAppearancePreferencesView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Hover Tint Color",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "Foreground Color",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 18
+        }
+      },
+      {
+        "comment": "",
+        "key": "Colors",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customize the color scheme for the playback window.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "Expanded Library View",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "Layout",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Shows a larger playback window with search and full track list.",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 46
+        }
+      },
+      {
+        "comment": "",
+        "key": "Blur Intensity",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hover Tint Opacity",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "Effects",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adjust blur and tint intensity for the playback window.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 79
+        }
+      }
+    ]
+  },
+  "version": 1
+}

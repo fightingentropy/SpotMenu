@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>colors</key>
+	<array/>
+	<key>images</key>
+	<array>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameAppleMusicIcon</string>
+			<key>relativePath</key>
+			<string>./AppleMusicIcon.imageset</string>
+			<key>swiftSymbol</key>
+			<string>appleMusicIcon</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameDromosIcon</string>
+			<key>relativePath</key>
+			<string>./DromosIcon.imageset</string>
+			<key>swiftSymbol</key>
+			<string>dromosIcon</string>
+		</dict>
+		<dict>
+			<key>catalogPath</key>
+			<string>/Users/erlinhoxha/Developer/SpotMenu/SpotMenu/Assets.xcassets</string>
+			<key>objcSymbol</key>
+			<string>ACImageNameSpotifyIcon</string>
+			<key>relativePath</key>
+			<string>./SpotifyIcon.imageset</string>
+			<key>swiftSymbol</key>
+			<string>spotifyIcon</string>
+		</dict>
+	</array>
+	<key>symbols</key>
+	<array/>
+</dict>
+</plist>

@@ -1,0 +1,12 @@
+{
+  "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/SourcePackages/checkouts/swift-argument-parser/Sources/ArgumentParser/Completions/BashCompletionsGenerator.swift" : {
+    "abi-baseline-json" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/swift-argument-parser.build/Release/ArgumentParser.build/Objects-normal/arm64/ArgumentParser.abi.json",
+    "const-values" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/swift-argument-parser.build/Release/ArgumentParser.build/Objects-normal/arm64/ArgumentParser-primary.swiftconstvalues",
+    "dependencies" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/swift-argument-parser.build/Release/ArgumentParser.build/Objects-normal/arm64/ArgumentParser-primary.d",
+    "diagnostics" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/swift-argument-parser.build/Release/ArgumentParser.build/Objects-normal/arm64/ArgumentParser-primary.dia",
+    "objc-header" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/swift-argument-parser.build/Release/ArgumentParser.build/Objects-normal/arm64/ArgumentParser-Swift.h",
+    "swiftdoc" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/swift-argument-parser.build/Release/ArgumentParser.build/Objects-normal/arm64/ArgumentParser.swiftdoc",
+    "swiftmodule" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/swift-argument-parser.build/Release/ArgumentParser.build/Objects-normal/arm64/ArgumentParser.swiftmodule",
+    "swiftsourceinfo" : "/Users/erlinhoxha/Developer/SpotMenu/.sparkle-tools/Build/Intermediates.noindex/swift-argument-parser.build/Release/ArgumentParser.build/Objects-normal/arm64/ArgumentParser.swiftsourceinfo"
+  }
+}
