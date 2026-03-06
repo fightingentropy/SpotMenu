@@ -43,6 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var menuBarPreferencesModelCancellable: AnyCancellable?
     var musicPlayerPreferencesModelCancellable: AnyCancellable?
     var playbackAppearanceCancellable: AnyCancellable?
+    var librarySearchFocusCancellable: AnyCancellable?
     var isUsingCustomStatusView = false
     private var lastStatusItemRenderSnapshot: StatusItemRenderSnapshot?
     private var isStatusItemWidthUpdateScheduled = false
@@ -169,6 +170,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 )
             }
 
+        librarySearchFocusCancellable = playbackModel.$isLibrarySearchFocused
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.updatePlayPauseShortcutRegistration(
+                    isPopoverVisible: self.popoverManager.isVisible
+                )
+            }
+
         playbackModel.restoreLastPlaybackOnLaunchIfNeeded()
     }
 
@@ -207,6 +217,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menuBarPreferencesModelCancellable?.cancel()
         musicPlayerPreferencesModelCancellable?.cancel()
         playbackAppearanceCancellable?.cancel()
+        librarySearchFocusCancellable?.cancel()
     }
 
     private func configurePlaybackShortcutDefaults() {
@@ -325,7 +336,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updatePlayPauseShortcutRegistration(isPopoverVisible: Bool) {
-        if isPopoverVisible {
+        if isPopoverVisible && !playbackModel.isLibrarySearchFocused {
             KeyboardShortcuts.enable(.playPause)
         } else {
             KeyboardShortcuts.disable(.playPause)

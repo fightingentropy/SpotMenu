@@ -16,6 +16,7 @@ struct PlaybackView: View {
     @State private var debouncedLibrarySearchText = ""
     @State private var searchDebounceWorkItem: DispatchWorkItem?
     @State private var selectedCategory: LibraryCategory
+    @FocusState private var isLibrarySearchFieldFocused: Bool
     @Environment(\.colorScheme) private var systemColorScheme
 
     private var compactDimension: CGFloat { 300 }
@@ -70,6 +71,9 @@ struct PlaybackView: View {
             model.refreshLibrary()
             debouncedLibrarySearchText = librarySearchText
         }
+        .onDisappear {
+            model.isLibrarySearchFocused = false
+        }
         .onChange(of: librarySearchText) { newValue in
             searchDebounceWorkItem?.cancel()
             let workItem = DispatchWorkItem {
@@ -77,6 +81,9 @@ struct PlaybackView: View {
             }
             searchDebounceWorkItem = workItem
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.16, execute: workItem)
+        }
+        .onChange(of: isLibrarySearchFieldFocused) { isFocused in
+            model.isLibrarySearchFocused = isFocused
         }
     }
 
@@ -196,6 +203,7 @@ struct PlaybackView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(preferences.foregroundColor.color.opacity(0.7))
                     TextField("Search songs", text: $librarySearchText)
+                        .focused($isLibrarySearchFieldFocused)
                         .textFieldStyle(.plain)
                         .foregroundColor(preferences.foregroundColor.color)
                 }

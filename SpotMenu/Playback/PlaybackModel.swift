@@ -183,6 +183,7 @@ class PlaybackModel: ObservableObject {
         .fullLibrary
     @Published var currentTrackID: URL? = nil
     @Published var isShuffleEnabled: Bool = false
+    @Published var isLibrarySearchFocused: Bool = false
 
     private let preferences: MusicPlayerPreferencesModel
     private var controller: MusicPlayerController
