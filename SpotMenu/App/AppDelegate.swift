@@ -83,12 +83,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] event in
             guard let self else { return event }
             guard self.popoverManager.isVisible else { return event }
-            guard self.popoverManager.isTextInputFocused else { return event }
             guard event.keyCode == 53 else { return event }
 
-            self.popoverManager.clearFirstResponder()
-            self.playbackModel.isLibrarySearchFocused = false
-            self.updatePlayPauseShortcutRegistration(isPopoverVisible: true)
+            if self.popoverManager.isTextInputFocused {
+                self.popoverManager.clearFirstResponder()
+                self.playbackModel.isLibrarySearchFocused = false
+                self.updatePlayPauseShortcutRegistration(isPopoverVisible: true)
+            } else {
+                self.popoverManager.dismiss()
+            }
             return nil
         }
 
