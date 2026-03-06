@@ -85,9 +85,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return event }
             guard self.popoverManager.isVisible else { return event }
             guard event.keyCode == 53 else { return event }  // Escape
-            guard !(NSApp.keyWindow?.firstResponder is NSTextView) else {
-                return event
-            }
 
             self.popoverManager.dismiss(triggeredByEscape: true)
             return nil

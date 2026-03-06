@@ -66,10 +66,6 @@ class PopoverWindow: NSPanel {
             return false
         }
 
-        guard !(firstResponder is NSTextView) else {
-            return false
-        }
-
         onEscape?()
         return true
     }
