@@ -87,6 +87,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard self.popoverManager.isVisible else { return event }
             guard event.keyCode == 53 else { return event }  // Escape
 
+            if self.popoverManager.isTextInputFocused {
+                self.popoverManager.clearFirstResponder()
+                return nil
+            }
+
             self.popoverManager.dismiss(triggeredByEscape: true)
             return nil
         }
