@@ -5,7 +5,7 @@ class PopoverManager {
     private var window: PopoverWindow
     private weak var lastAnchorButton: NSStatusBarButton?
     var onVisibilityChanged: ((Bool) -> Void)?
-    var onEscapePressed: (() -> Void)?
+    var onTextInputFocusChanged: ((Bool) -> Void)?
 
     var isVisible: Bool {
         window.isVisible
@@ -17,8 +17,8 @@ class PopoverManager {
 
     init<Content: View>(contentView: Content, size: CGSize) {
         self.window = PopoverWindow(rootView: contentView, size: size)
-        self.window.onEscape = { [weak self] in
-            self?.dismiss(triggeredByEscape: true)
+        self.window.onTextInputFocusChanged = { [weak self] isFocused in
+            self?.onTextInputFocusChanged?(isFocused)
         }
     }
 
@@ -49,9 +49,22 @@ class PopoverManager {
         window.onSeekBackward = onSeekBackward
     }
 
+    func setPlaybackHandlers(onPlayPause: @escaping () -> Void) {
+        window.onPlayPause = onPlayPause
+    }
+
     func clearFirstResponder() {
         guard window.isVisible else { return }
         window.makeFirstResponder(nil)
+    }
+
+    func focus() {
+        guard window.isVisible else { return }
+        if let button = lastAnchorButton {
+            positionWindow(relativeTo: button)
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
     }
 
     private func show(relativeTo button: NSStatusBarButton) {
@@ -60,10 +73,11 @@ class PopoverManager {
         positionWindow(relativeTo: button)
         window.alphaValue = 0
         window.makeKeyAndOrderFront(nil)
+        window.makeFirstResponder(nil)
         onVisibilityChanged?(true)
 
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.2
+            context.duration = 0.1
             window.animator().alphaValue = 1
         }
     }
@@ -89,17 +103,14 @@ class PopoverManager {
         window.setFrameOrigin(NSPoint(x: popoverX, y: popoverY))
     }
 
-    func dismiss(triggeredByEscape: Bool = false) {
+    func dismiss() {
         guard window.isVisible else { return }
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.2
+            context.duration = 0.1
             window.animator().alphaValue = 0
         } completionHandler: {
             self.window.orderOut(nil)
             self.window.alphaValue = 1
-            if triggeredByEscape {
-                self.onEscapePressed?()
-            }
             self.onVisibilityChanged?(false)
         }
     }

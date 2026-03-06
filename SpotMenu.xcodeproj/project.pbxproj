@@ -278,7 +278,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ngit_hash=$(git rev-parse --short HEAD)\n\n  if [ -z \"$git_hash\" ]; then\n      echo \"warning: Unable to get git hash\"\n      exit 0\n  fi\n\n  /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $git_hash\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n\n  echo \"Build number set to: $git_hash\"\n";
+			shellScript = "# Keep Sparkle's build version aligned with the shipped appcast version.\nbuild_version=\"${MARKETING_VERSION:-$CURRENT_PROJECT_VERSION}\"\n\nif [ -z \"$build_version\" ]; then\n    echo \"warning: Unable to determine build version\"\n    exit 0\nfi\n\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $build_version\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n\necho \"Build number set to: $build_version\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -467,7 +467,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.3.9;
+				MARKETING_VERSION = 2.3.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.kmikiy.SpotMenu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -501,7 +501,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.3.9;
+				MARKETING_VERSION = 2.3.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.kmikiy.SpotMenu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

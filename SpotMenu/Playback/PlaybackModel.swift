@@ -115,6 +115,7 @@ protocol MusicPlayerController {
     func libraryTracks() -> [LibraryTrack]
     func requestMetadata(for trackIDs: [URL])
     func playTrack(_ trackID: URL)
+    func playTrack(_ trackID: URL, within playbackQueue: [URL])
     func playTracks(_ trackIDs: [URL])
     func enqueueTrack(_ trackID: URL)
     func playStream(url: URL, title: String, artist: String, imageAssetName: String?)
@@ -127,6 +128,9 @@ extension MusicPlayerController {
     func libraryTracks() -> [LibraryTrack] { [] }
     func requestMetadata(for trackIDs: [URL]) {}
     func playTrack(_ trackID: URL) {}
+    func playTrack(_ trackID: URL, within playbackQueue: [URL]) {
+        playTrack(trackID)
+    }
     func playTracks(_ trackIDs: [URL]) {}
     func enqueueTrack(_ trackID: URL) {}
     func playStream(url: URL, title: String, artist: String, imageAssetName: String?) {}
@@ -183,6 +187,7 @@ class PlaybackModel: ObservableObject {
         .fullLibrary
     @Published var currentTrackID: URL? = nil
     @Published var isShuffleEnabled: Bool = false
+    @Published var librarySearchText: String = ""
     @Published var isLibrarySearchFocused: Bool = false
 
     private let preferences: MusicPlayerPreferencesModel
@@ -394,9 +399,22 @@ class PlaybackModel: ObservableObject {
         }
     }
 
-    func playLibraryTrack(_ track: LibraryTrack) {
-        libraryPlaybackQueue = .fullLibrary
-        controller.playTrack(track.id)
+    func playLibraryTrack(
+        _ track: LibraryTrack,
+        within visibleTracks: [LibraryTrack],
+        query: String
+    ) {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedQuery.isEmpty {
+            libraryPlaybackQueue = .fullLibrary
+            controller.playTrack(track.id)
+        } else {
+            libraryPlaybackQueue = .filtered(
+                query: trimmedQuery,
+                count: visibleTracks.count
+            )
+            controller.playTrack(track.id, within: visibleTracks.map(\.id))
+        }
         delayedFetch()
     }
 
@@ -439,6 +457,10 @@ class PlaybackModel: ObservableObject {
 
     func enqueueLibraryTrack(_ track: LibraryTrack) {
         controller.enqueueTrack(track.id)
+        let isShuffleEnabled = controller.isShuffleEnabled()
+        guard self.isShuffleEnabled != isShuffleEnabled else { return }
+        self.isShuffleEnabled = isShuffleEnabled
+        notifyModelUpdate()
     }
 
     func requestMetadataForTracks(_ trackIDs: [URL]) {

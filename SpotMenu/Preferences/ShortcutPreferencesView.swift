@@ -2,6 +2,7 @@ import KeyboardShortcuts
 import SwiftUI
 
 enum MediaAction: String, CaseIterable, Identifiable {
+    case toggleApp = "Show / Hide Player"
     case playPause = "Play / Pause"
     case nextTrack = "Next Track"
     case previousTrack = "Previous Track"
@@ -9,6 +10,7 @@ enum MediaAction: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
     var shortcutName: KeyboardShortcuts.Name {
         switch self {
+        case .toggleApp: return .toggleApp
         case .playPause: return .playPause
         case .nextTrack: return .nextTrack
         case .previousTrack: return .previousTrack
@@ -35,7 +37,7 @@ struct ShortcutPreferencesView: View {
                     } header: {
                         Text("Playback Controls")
                     } footer: {
-                        Text("Set keyboard shortcuts for controlling music playback.")
+                        Text("Set keyboard shortcuts for opening the player and controlling music playback.")
                     }
                 }
                 .formStyle(.grouped)

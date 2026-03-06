@@ -191,6 +191,38 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         audioPlayer?.play()
     }
 
+    func playTrack(_ trackID: URL, within playbackQueue: [URL]) {
+        stopStreamPlaybackIfNeeded()
+        refreshLibraryIfNeeded()
+
+        let librarySet = Set(trackURLs)
+        let queue = playbackQueue.filter { librarySet.contains($0) }
+        guard !queue.isEmpty else {
+            playTrack(trackID)
+            return
+        }
+
+        guard let selectedIndex = queue.firstIndex(of: trackID) else { return }
+
+        playbackQueueURLs = queue
+        manualQueueURLs = []
+        usesExplicitPlaybackOrder = false
+        shuffleOrder = []
+        shufflePosition = nil
+
+        if isShuffleEnabledState {
+            currentTrackIndex = selectedIndex
+            rebuildShuffleOrder(preservingCurrent: true)
+            let startIndex = shuffleOrder.first ?? selectedIndex
+            shufflePosition = 0
+            guard loadTrack(at: startIndex) else { return }
+        } else {
+            guard loadTrack(at: selectedIndex) else { return }
+        }
+
+        audioPlayer?.play()
+    }
+
     func playTracks(_ trackIDs: [URL]) {
         stopStreamPlaybackIfNeeded()
         refreshLibraryIfNeeded()
@@ -288,15 +320,15 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     }
 
     func toggleShuffle() {
-        isShuffleEnabledState.toggle()
+        let isEnablingShuffle = !isShuffleEnabledState
 
-        guard !usesExplicitPlaybackOrder else {
-            if !isShuffleEnabledState {
-                shuffleOrder = []
-                shufflePosition = nil
-            }
-            return
+        if isEnablingShuffle && usesExplicitPlaybackOrder {
+            // Queue ordering and shuffle are mutually exclusive.
+            usesExplicitPlaybackOrder = false
+            manualQueueURLs = []
         }
+
+        isShuffleEnabledState = isEnablingShuffle
 
         if isShuffleEnabledState {
             rebuildShuffleOrder(preservingCurrent: true)
@@ -818,9 +850,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
             keyContains: ["talb", "album"]
         )
 
-        let durationSeconds = CMTimeGetSeconds(asset.duration)
-        let duration = durationSeconds.isFinite && durationSeconds > 0
-            ? durationSeconds : 0
+        let duration = loadedDurationSeconds(for: asset)
 
         let image = artworkImage(from: mergedMetadata) ?? folderArtwork(for: url)
 
@@ -845,10 +875,19 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     }
 
     private func allMetadataItems(for asset: AVURLAsset) -> [AVMetadataItem] {
-        var items = asset.commonMetadata
+        var items = loadAVAsyncValue {
+            try await asset.load(.commonMetadata)
+        } ?? []
 
-        for format in asset.availableMetadataFormats {
-            items.append(contentsOf: asset.metadata(forFormat: format))
+        let formats = loadAVAsyncValue {
+            try await asset.load(.availableMetadataFormats)
+        } ?? []
+
+        for format in formats {
+            let formatItems = loadAVAsyncValue {
+                try await asset.loadMetadata(for: format)
+            } ?? []
+            items.append(contentsOf: formatItems)
         }
 
         return items
@@ -959,9 +998,11 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
 
     private func normalizedStringValue(from item: AVMetadataItem) -> String? {
         let rawValue: String?
-        if let stringValue = item.stringValue {
+        if let stringValue: String = loadAVAsyncOptionalValue({
+            try await item.load(.stringValue)
+        }) {
             rawValue = stringValue
-        } else if let value = item.value as? String {
+        } else if let value = loadedMetadataValue(from: item) as? String {
             rawValue = value
         } else {
             rawValue = nil
@@ -981,21 +1022,24 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         for item in metadataItems {
             guard isArtworkMetadata(item) else { continue }
 
-            if let data = item.dataValue,
+            if let data = loadAVAsyncOptionalValue({
+                try await item.load(.dataValue)
+            }),
                 !data.isEmpty,
                 let image = NSImage(data: data)
             {
                 return image
             }
 
-            if let value = item.value as? Data,
+            if let value = loadedMetadataValue(from: item) as? Data,
                 !value.isEmpty,
                 let image = NSImage(data: value)
             {
                 return image
             }
 
-            if let dictionary = item.value as? [AnyHashable: Any],
+            if let dictionary = loadedMetadataValue(from: item)
+                as? [AnyHashable: Any],
                 let data = dictionary["data"] as? Data,
                 !data.isEmpty,
                 let image = NSImage(data: data)
@@ -1003,7 +1047,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
                 return image
             }
 
-            if let image = item.value as? NSImage {
+            if let image = loadedMetadataValue(from: item) as? NSImage {
                 return image
             }
         }
@@ -1063,6 +1107,61 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         return nil
     }
 
+    private func loadedDurationSeconds(for asset: AVURLAsset) -> Double {
+        guard let duration: CMTime = loadAVAsyncValue({
+            try await asset.load(.duration)
+        }) else {
+            return 0
+        }
+
+        let seconds = CMTimeGetSeconds(duration)
+        return seconds.isFinite && seconds > 0 ? seconds : 0
+    }
+
+    private func loadedMetadataValue(from item: AVMetadataItem) -> Any? {
+        loadAVAsyncOptionalValue {
+            try await item.load(.value)
+        }
+    }
+
+    private func loadAVAsyncValue<T>(
+        _ operation: @escaping () async throws -> T
+    ) -> T? {
+        let semaphore = DispatchSemaphore(value: 0)
+        var result: Result<T, Error>?
+
+        Task {
+            do {
+                result = .success(try await operation())
+            } catch {
+                result = .failure(error)
+            }
+            semaphore.signal()
+        }
+
+        semaphore.wait()
+        return try? result?.get()
+    }
+
+    private func loadAVAsyncOptionalValue<T>(
+        _ operation: @escaping () async throws -> T?
+    ) -> T? {
+        let semaphore = DispatchSemaphore(value: 0)
+        var result: Result<T?, Error>?
+
+        Task {
+            do {
+                result = .success(try await operation())
+            } catch {
+                result = .failure(error)
+            }
+            semaphore.signal()
+        }
+
+        semaphore.wait()
+        return try? result?.get()
+    }
+
     private func stopStreamPlaybackIfNeeded() {
         streamPlayer?.pause()
         streamPlayer = nil
@@ -1078,6 +1177,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         playbackQueueURLs = snapshot.tracks
         currentTrackIndex = snapshot.currentIndex
         usesExplicitPlaybackOrder = true
+        isShuffleEnabledState = false
         shuffleOrder = []
         shufflePosition = nil
         synchronizeManualQueue()

@@ -49,9 +49,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isStatusItemWidthUpdateScheduled = false
     private var shouldAbortLaunch = false
     private var reopenObserver: NSObjectProtocol?
-    private var appToRefocusAfterEscape: NSRunningApplication?
-    private var foregroundAppObserver: NSObjectProtocol?
-    private var lastNonSpotMenuFrontmostApp: NSRunningApplication?
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         if activateExistingInstanceIfNeeded() {
@@ -65,6 +62,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !shouldAbortLaunch else { return }
         NSApp.setActivationPolicy(.accessory)
+        _ = UpdaterManager.shared
 
         playbackModel = PlaybackModel(preferences: musicPlayerPreferencesModel)
 
@@ -76,23 +74,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Handle right-click menu
         NSEvent.addLocalMonitorForEvents(matching: [.rightMouseUp]) {
             [weak self] event in
-            self?.handleRightClick(event: event)
-            return nil
+            guard let self else { return event }
+            return self.handleRightClick(event: event) ? nil : event
         }
 
-        // Handle Escape reliably even in non-activating panel contexts.
-        escapeKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown])
-        { [weak self] event in
+        escapeKeyMonitor = NSEvent.addLocalMonitorForEvents(
+            matching: [.keyDown]
+        ) { [weak self] event in
             guard let self else { return event }
             guard self.popoverManager.isVisible else { return event }
-            guard event.keyCode == 53 else { return event }  // Escape
+            guard self.popoverManager.isTextInputFocused else { return event }
+            guard event.keyCode == 53 else { return event }
 
-            if self.popoverManager.isTextInputFocused {
-                self.popoverManager.clearFirstResponder()
-                return nil
-            }
-
-            self.popoverManager.dismiss(triggeredByEscape: true)
+            self.popoverManager.clearFirstResponder()
+            self.playbackModel.isLibrarySearchFocused = false
+            self.updatePlayPauseShortcutRegistration(isPopoverVisible: true)
             return nil
         }
 
@@ -116,11 +112,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             size: playbackAppearancePreferencesModel.popoverSize
         )
         popoverManager.onVisibilityChanged = { [weak self] isVisible in
+            if !isVisible {
+                self?.playbackModel.librarySearchText = ""
+                self?.playbackModel.isLibrarySearchFocused = false
+            }
             self?.updatePlayPauseShortcutRegistration(isPopoverVisible: isVisible)
         }
-        popoverManager.onEscapePressed = { [weak self] in
-            self?.restoreFocusAfterEscapeDismiss()
+        popoverManager.onTextInputFocusChanged = { [weak self] isFocused in
+            self?.playbackModel.isLibrarySearchFocused = isFocused
         }
+        popoverManager.setPlaybackHandlers(onPlayPause: { [weak self] in
+            guard let self else { return }
+            self.popoverManager.clearFirstResponder()
+            self.playbackModel.togglePlayPause()
+            DispatchQueue.main.async {
+                self.updateStatusItem()
+            }
+        })
         popoverManager.setSeekHandlers(onSeekForward: { [weak self] in
             self?.playbackModel.seek(by: 10)
         }, onSeekBackward: { [weak self] in
@@ -149,7 +157,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         updatePlayPauseShortcutRegistration(isPopoverVisible: false)
         updateStatusItem()
         setupReopenObserver()
-        setupForegroundAppTracking()
 
         menuBarPreferencesModelCancellable = menuBarPreferencesModel
             .objectWillChange.sink { [weak self] _ in
@@ -193,6 +200,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    func applicationDidBecomeActive(_ notification: Notification) {
+        updatePlayPauseShortcutRegistration(
+            isPopoverVisible: popoverManager?.isVisible ?? false
+        )
+    }
+
+    func applicationDidResignActive(_ notification: Notification) {
+        updatePlayPauseShortcutRegistration(
+            isPopoverVisible: popoverManager?.isVisible ?? false
+        )
+    }
+
     func applicationShouldHandleReopen(
         _ sender: NSApplication,
         hasVisibleWindows flag: Bool
@@ -214,11 +233,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let reopenObserver {
             DistributedNotificationCenter.default().removeObserver(reopenObserver)
         }
-        if let foregroundAppObserver {
-            NSWorkspace.shared.notificationCenter.removeObserver(
-                foregroundAppObserver
-            )
-        }
         menuBarPreferencesModelCancellable?.cancel()
         musicPlayerPreferencesModelCancellable?.cancel()
         playbackAppearanceCancellable?.cancel()
@@ -226,6 +240,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configurePlaybackShortcutDefaults() {
+        let defaultToggleAppShortcut = KeyboardShortcuts.Shortcut(
+            .m,
+            modifiers: [.option]
+        )
         let defaultPlayPauseShortcut = KeyboardShortcuts.Shortcut(
             .space,
             modifiers: []
@@ -246,6 +264,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             .z,
             modifiers: []
         )
+
+        if KeyboardShortcuts.getShortcut(for: .toggleApp) == nil {
+            KeyboardShortcuts.setShortcut(
+                defaultToggleAppShortcut,
+                for: .toggleApp
+            )
+        }
 
         if KeyboardShortcuts.getShortcut(for: .playPause) == nil {
             KeyboardShortcuts.setShortcut(
@@ -288,14 +313,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupKeyboardShortcuts() {
+        KeyboardShortcuts.onKeyDown(for: .toggleApp) { [weak self] in
+            self?.handleAppToggleShortcut()
+        }
         KeyboardShortcuts.onKeyUp(for: .playPause) { [weak self] in
-            guard let self, self.popoverManager.isVisible else { return }
-            guard !self.popoverManager.isTextInputFocused else { return }
-            self.popoverManager.clearFirstResponder()
-            self.playbackModel.togglePlayPause()
-            // Immediately update status item for keyboard shortcut feedback
+            self?.playbackModel.togglePlayPause()
             DispatchQueue.main.async {
-                self.updateStatusItem()
+                self?.updateStatusItem()
             }
         }
         KeyboardShortcuts.onKeyDown(for: .nextTrack) { [weak self] in
@@ -341,10 +365,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updatePlayPauseShortcutRegistration(isPopoverVisible: Bool) {
-        if isPopoverVisible && !playbackModel.isLibrarySearchFocused {
-            KeyboardShortcuts.enable(.playPause)
-        } else {
+        let shouldUsePopoverHandler = isPopoverVisible && NSApp.isActive
+        if shouldUsePopoverHandler {
             KeyboardShortcuts.disable(.playPause)
+        } else {
+            KeyboardShortcuts.enable(.playPause)
         }
     }
 
@@ -415,46 +440,39 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func showPopoverIfHidden() {
         guard let button = statusItem.button else { return }
         if popoverManager.isVisible {
-            NSApp.activate(ignoringOtherApps: true)
+            popoverManager.focus()
             return
         }
 
-        captureAppToRefocusAfterEscape()
         popoverManager.toggle(relativeTo: button)
-        NSApp.activate(ignoringOtherApps: true)
+        popoverManager.focus()
     }
 
-    private func captureAppToRefocusAfterEscape() {
-        let currentPID = ProcessInfo.processInfo.processIdentifier
-        guard
-            let frontmost = NSWorkspace.shared.frontmostApplication,
-            frontmost.processIdentifier != currentPID
-        else {
-            appToRefocusAfterEscape = lastNonSpotMenuFrontmostApp
+    private func handleAppToggleShortcut() {
+        if popoverManager.isVisible {
+            if NSApp.isActive {
+                popoverManager.dismiss()
+            } else {
+                popoverManager.focus()
+            }
             return
         }
 
-        appToRefocusAfterEscape = frontmost
+        showPopoverIfHidden()
     }
 
-    private func restoreFocusAfterEscapeDismiss() {
-        defer { appToRefocusAfterEscape = nil }
-        guard let app = appToRefocusAfterEscape else { return }
-        guard !app.isTerminated else { return }
-        app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-    }
-
-    private func handleRightClick(event: NSEvent) {
+    private func handleRightClick(event: NSEvent) -> Bool {
         guard let button = statusItem.button,
             button.frame.contains(
                 button.convert(event.locationInWindow, from: nil)
             )
-        else { return }
+        else { return false }
 
         popoverManager.dismiss()
         statusItem.menu = MenuBuilder.build(delegate: self)
         button.performClick(nil)
         statusItem.menu = nil
+        return true
     }
 
     @objc func refreshAction() {
@@ -545,33 +563,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             self?.showPopoverIfHidden()
         }
-    }
-
-    private func setupForegroundAppTracking() {
-        let currentPID = ProcessInfo.processInfo.processIdentifier
-        if let frontmost = NSWorkspace.shared.frontmostApplication,
-            frontmost.processIdentifier != currentPID
-        {
-            lastNonSpotMenuFrontmostApp = frontmost
-        }
-
-        foregroundAppObserver = NSWorkspace.shared.notificationCenter
-            .addObserver(
-                forName: NSWorkspace.didActivateApplicationNotification,
-                object: nil,
-                queue: .main
-            ) { [weak self] notification in
-                guard let self else { return }
-                let currentPID = ProcessInfo.processInfo.processIdentifier
-                guard
-                    let app =
-                        notification.userInfo?[NSWorkspace.applicationUserInfoKey]
-                        as? NSRunningApplication,
-                    app.processIdentifier != currentPID
-                else { return }
-
-                self.lastNonSpotMenuFrontmostApp = app
-            }
     }
 
 }

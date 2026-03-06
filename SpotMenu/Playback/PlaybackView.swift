@@ -12,7 +12,6 @@ struct PlaybackView: View {
     @ObservedObject var preferences: PlaybackAppearancePreferencesModel
     @ObservedObject var musicPlayerPreferencesModel: MusicPlayerPreferencesModel
     @State private var isHovering = false
-    @State private var librarySearchText = ""
     @State private var debouncedLibrarySearchText = ""
     @State private var searchDebounceWorkItem: DispatchWorkItem?
     @State private var selectedCategory: LibraryCategory
@@ -69,12 +68,12 @@ struct PlaybackView: View {
         }
         .onAppear {
             model.refreshLibrary()
-            debouncedLibrarySearchText = librarySearchText
+            debouncedLibrarySearchText = model.librarySearchText
         }
         .onDisappear {
             model.isLibrarySearchFocused = false
         }
-        .onChange(of: librarySearchText) { newValue in
+        .onChange(of: model.librarySearchText) { newValue in
             searchDebounceWorkItem?.cancel()
             let workItem = DispatchWorkItem {
                 debouncedLibrarySearchText = newValue
@@ -84,6 +83,10 @@ struct PlaybackView: View {
         }
         .onChange(of: isLibrarySearchFieldFocused) { isFocused in
             model.isLibrarySearchFocused = isFocused
+        }
+        .onChange(of: model.isLibrarySearchFocused) { isFocused in
+            guard isLibrarySearchFieldFocused != isFocused else { return }
+            isLibrarySearchFieldFocused = isFocused
         }
     }
 
@@ -202,7 +205,13 @@ struct PlaybackView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(preferences.foregroundColor.color.opacity(0.7))
-                    TextField("Search songs", text: $librarySearchText)
+                    TextField(
+                        "Search songs",
+                        text: $model.librarySearchText,
+                        onEditingChanged: { isEditing in
+                            model.isLibrarySearchFocused = isEditing
+                        }
+                    )
                         .focused($isLibrarySearchFieldFocused)
                         .textFieldStyle(.plain)
                         .foregroundColor(preferences.foregroundColor.color)
@@ -368,7 +377,11 @@ struct PlaybackView: View {
         let isCurrentTrack = model.currentTrackID == track.id
 
         return Button(action: {
-            model.playLibraryTrack(track)
+            model.playLibraryTrack(
+                track,
+                within: filteredLibraryTracks,
+                query: debouncedLibrarySearchText
+            )
         }) {
             HStack(spacing: 10) {
                 trackArtwork(for: track)

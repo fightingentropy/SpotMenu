@@ -1,10 +1,12 @@
 import Cocoa
+import KeyboardShortcuts
 import SwiftUI
 
 class PopoverWindow: NSPanel {
+    var onPlayPause: (() -> Void)?
     var onSeekForward: (() -> Void)?
     var onSeekBackward: (() -> Void)?
-    var onEscape: (() -> Void)?
+    var onTextInputFocusChanged: ((Bool) -> Void)?
 
     init<Content: View>(rootView: Content, size: CGSize) {
         let hostingView = NSHostingView(rootView: rootView)
@@ -45,8 +47,16 @@ class PopoverWindow: NSPanel {
         return false
     }
 
+    @discardableResult
+    override func makeFirstResponder(_ responder: NSResponder?) -> Bool {
+        let didChange = super.makeFirstResponder(responder)
+        guard didChange else { return false }
+        onTextInputFocusChanged?(firstResponder is NSTextView)
+        return true
+    }
+
     override func sendEvent(_ event: NSEvent) {
-        if handleEscapeKeyEvent(event) {
+        if handlePlayPauseKeyEvent(event) {
             return
         }
 
@@ -57,20 +67,31 @@ class PopoverWindow: NSPanel {
         super.sendEvent(event)
     }
 
-    override func cancelOperation(_ sender: Any?) {
-        onEscape?()
-    }
-
-    private func handleEscapeKeyEvent(_ event: NSEvent) -> Bool {
-        guard event.type == .keyDown else {
+    private func handlePlayPauseKeyEvent(_ event: NSEvent) -> Bool {
+        guard event.type == .keyDown || event.type == .keyUp else {
             return false
         }
 
-        guard event.keyCode == 53 else {
+        guard !(firstResponder is NSTextView) else {
             return false
         }
 
-        onEscape?()
+        guard let shortcut = KeyboardShortcuts.Shortcut(name: .playPause) else {
+            return false
+        }
+
+        guard let eventShortcut = KeyboardShortcuts.Shortcut(event: event) else {
+            return false
+        }
+
+        guard eventShortcut == shortcut else {
+            return false
+        }
+
+        if event.type == .keyUp {
+            onPlayPause?()
+        }
+
         return true
     }
 
