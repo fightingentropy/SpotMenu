@@ -116,6 +116,7 @@ protocol MusicPlayerController {
     func requestMetadata(for trackIDs: [URL])
     func playTrack(_ trackID: URL)
     func playTracks(_ trackIDs: [URL])
+    func enqueueTrack(_ trackID: URL)
     func playStream(url: URL, title: String, artist: String, imageAssetName: String?)
     func playAll()
     func toggleShuffle()
@@ -127,6 +128,7 @@ extension MusicPlayerController {
     func requestMetadata(for trackIDs: [URL]) {}
     func playTrack(_ trackID: URL) {}
     func playTracks(_ trackIDs: [URL]) {}
+    func enqueueTrack(_ trackID: URL) {}
     func playStream(url: URL, title: String, artist: String, imageAssetName: String?) {}
     func playAll() {}
     func toggleShuffle() {}
@@ -210,6 +212,10 @@ class PlaybackModel: ObservableObject {
     var shouldOpenStreamsOnLaunch: Bool {
         guard preferences.resumeLastPlaybackOnLaunch else { return false }
         return loadLastPlaybackSnapshot()?.source == .stream
+    }
+
+    var canQueueLibraryTracks: Bool {
+        currentTrackID?.isFileURL == true
     }
 
     init(preferences: MusicPlayerPreferencesModel) {
@@ -428,6 +434,10 @@ class PlaybackModel: ObservableObject {
         }
         controller.playTracks(trackIDs)
         delayedFetch()
+    }
+
+    func enqueueLibraryTrack(_ track: LibraryTrack) {
+        controller.enqueueTrack(track.id)
     }
 
     func requestMetadataForTracks(_ trackIDs: [URL]) {

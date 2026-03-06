@@ -274,6 +274,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupKeyboardShortcuts() {
         KeyboardShortcuts.onKeyUp(for: .playPause) { [weak self] in
             guard let self, self.popoverManager.isVisible else { return }
+            guard !self.popoverManager.isTextInputFocused else { return }
             self.popoverManager.clearFirstResponder()
             self.playbackModel.togglePlayPause()
             // Immediately update status item for keyboard shortcut feedback

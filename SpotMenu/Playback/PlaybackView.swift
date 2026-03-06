@@ -412,6 +412,14 @@ struct PlaybackView: View {
             )
         }
         .buttonStyle(.plain)
+        .contextMenu {
+            Button {
+                model.enqueueLibraryTrack(track)
+            } label: {
+                Label("Add to Queue", systemImage: "text.line.first.and.arrowtriangle.forward")
+            }
+            .disabled(!model.canQueueLibraryTracks)
+        }
         .onAppear {
             model.requestMetadataForTracks([track.id])
         }

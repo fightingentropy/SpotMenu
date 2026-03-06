@@ -30,6 +30,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     private var streamPlayer: AVPlayer?
     private var trackURLs: [URL] = []
     private var playbackQueueURLs: [URL]?
+    private var manualQueueURLs: [URL] = []
     private var cachedLibraryTracks: [LibraryTrack] = []
     private var metadataCache: [URL: TrackMetadata] = [:]
     private let metadataIndexingQueue = DispatchQueue(
@@ -48,6 +49,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
     private var currentStreamArtist: String?
     private var currentStreamImage: NSImage?
     private var isShuffleEnabledState = false
+    private var usesExplicitPlaybackOrder = false
     private var shuffleOrder: [Int] = []
     private var shufflePosition: Int?
     private var currentFolderURL: URL?
@@ -180,6 +182,8 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         stopStreamPlaybackIfNeeded()
         refreshLibraryIfNeeded()
         playbackQueueURLs = nil
+        manualQueueURLs = []
+        usesExplicitPlaybackOrder = false
         guard let index = activeTrackURLs.firstIndex(of: trackID) else { return }
         shuffleOrder = []
         shufflePosition = nil
@@ -196,6 +200,8 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         guard !queue.isEmpty else { return }
 
         playbackQueueURLs = queue
+        manualQueueURLs = []
+        usesExplicitPlaybackOrder = false
         shuffleOrder = []
         shufflePosition = nil
 
@@ -212,10 +218,43 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         audioPlayer?.play()
     }
 
+    func enqueueTrack(_ trackID: URL) {
+        guard streamPlayer == nil else { return }
+
+        refreshLibraryIfNeeded()
+
+        let librarySet = Set(trackURLs)
+        guard librarySet.contains(trackID) else { return }
+        guard materializePlaybackQueueForManualOrdering() else { return }
+        guard var queue = playbackQueueURLs,
+            let currentTrackIndex,
+            queue.indices.contains(currentTrackIndex)
+        else {
+            return
+        }
+
+        removeFutureOccurrences(of: trackID, from: &queue, after: currentTrackIndex)
+
+        manualQueueURLs.removeAll { $0 == trackID }
+
+        let insertAfterIndex =
+            manualQueueURLs.reversed().compactMap { queuedTrackID in
+                queue.lastIndex(of: queuedTrackID)
+            }.first
+            ?? currentTrackIndex
+
+        queue.insert(trackID, at: min(insertAfterIndex + 1, queue.count))
+        playbackQueueURLs = queue
+        manualQueueURLs.append(trackID)
+    }
+
     func playStream(url: URL, title: String, artist: String, imageAssetName: String?) {
         audioPlayer?.stop()
         audioPlayer = nil
         currentTrackIndex = nil
+        playbackQueueURLs = nil
+        manualQueueURLs = []
+        usesExplicitPlaybackOrder = false
 
         let playerItem = AVPlayerItem(url: url)
         let player = AVPlayer(playerItem: playerItem)
@@ -231,6 +270,8 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         stopStreamPlaybackIfNeeded()
         refreshLibraryIfNeeded()
         playbackQueueURLs = nil
+        manualQueueURLs = []
+        usesExplicitPlaybackOrder = false
         guard !activeTrackURLs.isEmpty else { return }
 
         let startIndex: Int
@@ -248,6 +289,14 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
 
     func toggleShuffle() {
         isShuffleEnabledState.toggle()
+
+        guard !usesExplicitPlaybackOrder else {
+            if !isShuffleEnabledState {
+                shuffleOrder = []
+                shufflePosition = nil
+            }
+            return
+        }
 
         if isShuffleEnabledState {
             rebuildShuffleOrder(preservingCurrent: true)
@@ -298,7 +347,7 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         refreshLibraryIfNeeded()
         guard !activeTrackURLs.isEmpty else { return }
 
-        if isShuffleEnabledState {
+        if isShuffleEnabledState, !usesExplicitPlaybackOrder {
             playAdjacentShuffledTrack(step: step)
             return
         }
@@ -351,7 +400,9 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
             player.prepareToPlay()
             audioPlayer = player
             currentTrackIndex = index
-            if isShuffleEnabledState {
+            if usesExplicitPlaybackOrder {
+                synchronizeManualQueue()
+            } else if isShuffleEnabledState {
                 if shuffleOrder.isEmpty {
                     rebuildShuffleOrder(preservingCurrent: true)
                 }
@@ -403,8 +454,10 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
             playbackQueueURLs = queue.filter { scannedTrackSet.contains($0) }
             if playbackQueueURLs?.isEmpty == true {
                 playbackQueueURLs = nil
+                usesExplicitPlaybackOrder = false
             }
         }
+        manualQueueURLs = manualQueueURLs.filter { scannedTrackSet.contains($0) }
 
         if let previousCurrentURL,
             let preservedIndex = activeTrackURLs.firstIndex(of: previousCurrentURL)
@@ -529,6 +582,8 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         pendingMetadataURLs = []
         trackURLs = []
         playbackQueueURLs = nil
+        manualQueueURLs = []
+        usesExplicitPlaybackOrder = false
         shuffleOrder = []
         shufflePosition = nil
         cachedLibraryTracks = []
@@ -1015,6 +1070,81 @@ final class MusicFolderController: NSObject, AVAudioPlayerDelegate,
         currentStreamTitle = nil
         currentStreamArtist = nil
         currentStreamImage = nil
+    }
+
+    private func materializePlaybackQueueForManualOrdering() -> Bool {
+        guard let snapshot = currentPlaybackQueueSnapshot() else { return false }
+
+        playbackQueueURLs = snapshot.tracks
+        currentTrackIndex = snapshot.currentIndex
+        usesExplicitPlaybackOrder = true
+        shuffleOrder = []
+        shufflePosition = nil
+        synchronizeManualQueue()
+        return true
+    }
+
+    private func currentPlaybackQueueSnapshot() -> (tracks: [URL], currentIndex: Int)? {
+        if usesExplicitPlaybackOrder, let playbackQueueURLs, let currentTrackIndex,
+            playbackQueueURLs.indices.contains(currentTrackIndex)
+        {
+            return (playbackQueueURLs, currentTrackIndex)
+        }
+
+        guard let currentTrackIndex,
+            activeTrackURLs.indices.contains(currentTrackIndex)
+        else {
+            return nil
+        }
+
+        if isShuffleEnabledState {
+            if shuffleOrder.isEmpty {
+                rebuildShuffleOrder(preservingCurrent: true)
+            }
+
+            guard !shuffleOrder.isEmpty else {
+                return (activeTrackURLs, currentTrackIndex)
+            }
+
+            let playbackOrder = shuffleOrder.map { activeTrackURLs[$0] }
+            let playbackIndex =
+                shufflePosition
+                ?? shuffleOrder.firstIndex(of: currentTrackIndex)
+                ?? 0
+            return (playbackOrder, playbackIndex)
+        }
+
+        return (activeTrackURLs, currentTrackIndex)
+    }
+
+    private func synchronizeManualQueue() {
+        guard usesExplicitPlaybackOrder,
+            let playbackQueueURLs,
+            let currentTrackIndex,
+            playbackQueueURLs.indices.contains(currentTrackIndex)
+        else {
+            manualQueueURLs = []
+            return
+        }
+
+        let upcomingTracks = Set(playbackQueueURLs.suffix(from: currentTrackIndex + 1))
+        manualQueueURLs = manualQueueURLs.filter { upcomingTracks.contains($0) }
+    }
+
+    private func removeFutureOccurrences(
+        of trackID: URL,
+        from queue: inout [URL],
+        after currentIndex: Int
+    ) {
+        guard currentIndex + 1 < queue.count else { return }
+
+        let removalIndices = queue.indices.reversed().filter { index in
+            index > currentIndex && queue[index] == trackID
+        }
+
+        for index in removalIndices {
+            queue.remove(at: index)
+        }
     }
 }
 

@@ -11,6 +11,10 @@ class PopoverManager {
         window.isVisible
     }
 
+    var isTextInputFocused: Bool {
+        window.firstResponder is NSTextView
+    }
+
     init<Content: View>(contentView: Content, size: CGSize) {
         self.window = PopoverWindow(rootView: contentView, size: size)
         self.window.onEscape = { [weak self] in
