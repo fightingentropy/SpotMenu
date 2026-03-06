@@ -57,6 +57,10 @@ class PopoverWindow: NSPanel {
         super.sendEvent(event)
     }
 
+    override func cancelOperation(_ sender: Any?) {
+        onEscape?()
+    }
+
     private func handleEscapeKeyEvent(_ event: NSEvent) -> Bool {
         guard event.type == .keyDown else {
             return false
