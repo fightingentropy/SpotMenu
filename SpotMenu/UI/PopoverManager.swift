@@ -45,6 +45,11 @@ class PopoverManager {
         window.onSeekBackward = onSeekBackward
     }
 
+    func clearFirstResponder() {
+        guard window.isVisible else { return }
+        window.makeFirstResponder(nil)
+    }
+
     private func show(relativeTo button: NSStatusBarButton) {
         lastAnchorButton = button
 

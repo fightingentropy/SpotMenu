@@ -274,6 +274,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupKeyboardShortcuts() {
         KeyboardShortcuts.onKeyUp(for: .playPause) { [weak self] in
             guard let self, self.popoverManager.isVisible else { return }
+            self.popoverManager.clearFirstResponder()
             self.playbackModel.togglePlayPause()
             // Immediately update status item for keyboard shortcut feedback
             DispatchQueue.main.async {
@@ -281,6 +282,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         KeyboardShortcuts.onKeyDown(for: .nextTrack) { [weak self] in
+            self?.popoverManager.clearFirstResponder()
             self?.playbackModel.skipForward()
             // Immediately update status item for keyboard shortcut feedback
             DispatchQueue.main.async {
@@ -288,6 +290,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         KeyboardShortcuts.onKeyDown(for: .previousTrack) { [weak self] in
+            self?.popoverManager.clearFirstResponder()
             self?.playbackModel.skipBack()
             // Immediately update status item for keyboard shortcut feedback
             DispatchQueue.main.async {
@@ -295,6 +298,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         KeyboardShortcuts.onKeyUp(for: .toggleLike) { [weak self] in
+            self?.popoverManager.clearFirstResponder()
             self?.playbackModel.toggleLiked()
             // Immediately update status item for keyboard shortcut feedback
             DispatchQueue.main.async {
@@ -302,6 +306,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         KeyboardShortcuts.onKeyUp(for: .likeTrack) { [weak self] in
+            self?.popoverManager.clearFirstResponder()
             self?.playbackModel.likeTrack()
             // Immediately update status item for keyboard shortcut feedback
             DispatchQueue.main.async {
@@ -309,6 +314,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         KeyboardShortcuts.onKeyUp(for: .unlikeTrack) { [weak self] in
+            self?.popoverManager.clearFirstResponder()
             self?.playbackModel.unlikeTrack()
             // Immediately update status item for keyboard shortcut feedback
             DispatchQueue.main.async {
