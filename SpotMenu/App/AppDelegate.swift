@@ -377,12 +377,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updatePlayPauseShortcutRegistration(isPopoverVisible: Bool) {
-        let shouldUsePopoverHandler = isPopoverVisible && NSApp.isActive
-        if shouldUsePopoverHandler {
-            KeyboardShortcuts.disable(.playPause)
-        } else {
-            KeyboardShortcuts.enable(.playPause)
-        }
+        // Keep play/pause scoped to the visible popover so an unmodified
+        // shortcut like Space does not hijack text entry in other apps.
+        KeyboardShortcuts.disable(.playPause)
     }
 
     func updateStatusItem() {
