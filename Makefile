@@ -18,7 +18,7 @@ XCODEBUILD_BASE = xcodebuild \
 
 APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)/SpotMenu.app
 
-.PHONY: build test run clean install-local local
+.PHONY: build test run clean install-local local sparkle-release
 
 build:
 	$(XCODEBUILD_BASE) build
@@ -33,6 +33,9 @@ install-local:
 	./scripts/install_local_app.sh
 
 local: install-local
+
+sparkle-release:
+	./scripts/build_sparkle_release.sh
 
 clean:
 	rm -rf "$(DERIVED_DATA)"

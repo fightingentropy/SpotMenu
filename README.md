@@ -57,6 +57,18 @@ make build CONFIGURATION=Release
 
 Local installs use a local `SpotMenu` code-signing identity and intentionally omit Sparkle feed settings so the installed app does not drift from the published release feed.
 
+Release builds should inject Sparkle settings at build time instead of storing them in the project. Use:
+
+```bash
+SPARKLE_PRIVATE_KEY=... TAG_NAME=v2.3.12 GITHUB_REPOSITORY=fightingentropy/SpotMenu make sparkle-release
+```
+
+That script derives `SPARKLE_PUBLIC_ED_KEY` from `SPARKLE_PRIVATE_KEY`, injects the feed URL during the Release build, and generates a signed appcast in `.codex-build/sparkle-release/dist/`.
+
+Use the same `SPARKLE_PRIVATE_KEY` for future releases if you want existing users to keep receiving Sparkle updates without a manual reinstall.
+
+If you need a non-default feed URL, pass `SPARKLE_FEED_URL=...` when invoking the script.
+
 ---
 
 ## Preferences
