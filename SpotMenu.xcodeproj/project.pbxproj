@@ -471,6 +471,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.kmikiy.SpotMenu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
+				SPARKLE_FEED_URL = "https://raw.githubusercontent.com/fightingentropy/SpotMenu/main/appcast.xml";
+				SPARKLE_PUBLIC_ED_KEY = "qk1d4lmZRxr+pXMwftRYWK7yyjARhSaqWyw024Cjycc=";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -505,6 +507,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.kmikiy.SpotMenu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
+				SPARKLE_FEED_URL = "https://raw.githubusercontent.com/fightingentropy/SpotMenu/main/appcast.xml";
+				SPARKLE_PUBLIC_ED_KEY = "qk1d4lmZRxr+pXMwftRYWK7yyjARhSaqWyw024Cjycc=";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};

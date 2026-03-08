@@ -4,6 +4,10 @@ CONFIGURATION ?= Debug
 DERIVED_DATA ?= $(CURDIR)/.derivedData
 ARCH ?= $(shell uname -m)
 DESTINATION ?= platform=macOS,arch=$(ARCH)
+LOCAL_BUILD_ROOT := $(CURDIR)/.codex-build/local-install
+LOCAL_DERIVED_DATA := $(LOCAL_BUILD_ROOT)/deriveddata
+INSTALL_APP_PATH := /Applications/SpotMenu.app
+LOCAL_CODESIGN_IDENTITY ?= SpotMenu
 
 XCODEBUILD_BASE = xcodebuild \
 	-project "$(PROJECT)" \
@@ -14,7 +18,7 @@ XCODEBUILD_BASE = xcodebuild \
 
 APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)/SpotMenu.app
 
-.PHONY: build test run clean
+.PHONY: build test run clean install-local local
 
 build:
 	$(XCODEBUILD_BASE) build
@@ -24,6 +28,11 @@ test:
 
 run: build
 	open "$(APP_PATH)"
+
+install-local:
+	./scripts/install_local_app.sh
+
+local: install-local
 
 clean:
 	rm -rf "$(DERIVED_DATA)"

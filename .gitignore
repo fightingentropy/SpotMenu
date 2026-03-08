@@ -12,6 +12,7 @@ website/dist/
 .DS_Store
 
 SpotMenuReleases
+.codex-build
 .build
 .derivedData
 .release-build-*/

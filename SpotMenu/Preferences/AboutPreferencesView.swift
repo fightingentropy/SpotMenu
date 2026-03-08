@@ -1,7 +1,8 @@
-import Sparkle
 import SwiftUI
 
 struct AboutPreferencesView: View {
+    private let updater = UpdaterManager.shared
+
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
     }
@@ -9,9 +10,6 @@ struct AboutPreferencesView: View {
     private var buildNumber: String {
         Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
     }
-
-    // Sparkle updater (shared instance)
-    private var updater: SPUUpdater { UpdaterManager.shared.updater }
     @State private var automaticallyChecksForUpdates = false
     @State private var automaticallyDownloadsUpdates = false
     @State private var lastUpdateCheckDate: Date?
@@ -49,71 +47,71 @@ struct AboutPreferencesView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Divider()
-                    .padding(.horizontal, 40)
+                if updater.isConfigured {
+                    Divider()
+                        .padding(.horizontal, 40)
 
-                // Software Updates Section
-                VStack(spacing: 12) {
-                    Text("Software Updates")
-                        .font(.headline)
+                    VStack(spacing: 12) {
+                        Text("Software Updates")
+                            .font(.headline)
 
-                    Toggle(
-                        "Automatically check for updates",
-                        isOn: Binding(
-                            get: { automaticallyChecksForUpdates },
-                            set: { newValue in
-                                automaticallyChecksForUpdates = newValue
-                                updater.automaticallyChecksForUpdates = newValue
-                            }
+                        Toggle(
+                            "Automatically check for updates",
+                            isOn: Binding(
+                                get: { automaticallyChecksForUpdates },
+                                set: { newValue in
+                                    automaticallyChecksForUpdates = newValue
+                                    updater.automaticallyChecksForUpdates = newValue
+                                }
+                            )
                         )
-                    )
-                    .toggleStyle(.switch)
+                        .toggleStyle(.switch)
 
-                    Toggle(
-                        "Automatically download updates",
-                        isOn: Binding(
-                            get: { automaticallyDownloadsUpdates },
-                            set: { newValue in
-                                automaticallyDownloadsUpdates = newValue
-                                updater.automaticallyDownloadsUpdates = newValue
-                            }
+                        Toggle(
+                            "Automatically download updates",
+                            isOn: Binding(
+                                get: { automaticallyDownloadsUpdates },
+                                set: { newValue in
+                                    automaticallyDownloadsUpdates = newValue
+                                    updater.automaticallyDownloadsUpdates = newValue
+                                }
+                            )
                         )
-                    )
-                    .toggleStyle(.switch)
-                    .disabled(!automaticallyChecksForUpdates)
+                        .toggleStyle(.switch)
+                        .disabled(!automaticallyChecksForUpdates)
 
-                    HStack {
-                        Text("Last checked:")
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        if let lastCheck = lastUpdateCheckDate {
-                            Text(lastCheck.formatted(date: .abbreviated, time: .shortened))
+                        HStack {
+                            Text("Last checked:")
                                 .foregroundStyle(.secondary)
-                        } else {
-                            Text("Never")
-                                .foregroundStyle(.secondary)
+                            Spacer()
+                            if let lastCheck = lastUpdateCheckDate {
+                                Text(lastCheck.formatted(date: .abbreviated, time: .shortened))
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text("Never")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                    }
-                    .font(.subheadline)
+                        .font(.subheadline)
 
-                    Button("Check for Updates Now") {
-                        updater.checkForUpdates()
-                        // Update the displayed date after a short delay
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                            lastUpdateCheckDate = updater.lastUpdateCheckDate
+                        Button("Check for Updates Now") {
+                            updater.checkForUpdates()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                lastUpdateCheckDate = updater.lastUpdateCheckDate
+                            }
                         }
+                        .buttonStyle(.borderedProminent)
                     }
-                    .buttonStyle(.borderedProminent)
-                }
-                .padding(.horizontal, 20)
-                .onAppear {
-                    automaticallyChecksForUpdates = updater.automaticallyChecksForUpdates
-                    automaticallyDownloadsUpdates = updater.automaticallyDownloadsUpdates
-                    lastUpdateCheckDate = updater.lastUpdateCheckDate
-                }
+                    .padding(.horizontal, 20)
+                    .onAppear {
+                        automaticallyChecksForUpdates = updater.automaticallyChecksForUpdates
+                        automaticallyDownloadsUpdates = updater.automaticallyDownloadsUpdates
+                        lastUpdateCheckDate = updater.lastUpdateCheckDate
+                    }
 
-                Divider()
-                    .padding(.horizontal, 40)
+                    Divider()
+                        .padding(.horizontal, 40)
+                }
 
                 // Links
                 VStack(spacing: 12) {

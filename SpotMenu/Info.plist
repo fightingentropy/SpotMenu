@@ -19,9 +19,9 @@
 	</array>
 	<!-- Sparkle Update Configuration -->
 	<key>SUPublicEDKey</key>
-	<string>qk1d4lmZRxr+pXMwftRYWK7yyjARhSaqWyw024Cjycc=</string>
+	<string>$(SPARKLE_PUBLIC_ED_KEY)</string>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/fightingentropy/SpotMenu/main/appcast.xml</string>
+	<string>$(SPARKLE_FEED_URL)</string>
 	<!-- Enable Sparkle's Installer XPC Service for sandboxed updates -->
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>

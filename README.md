@@ -38,15 +38,24 @@ make build
 make run
 ```
 
+If you want a local `/Applications/SpotMenu.app` install with stable local signing and Sparkle disabled:
+
+```bash
+make local
+```
+
 Common terminal workflows:
 
 ```bash
 make build                     # Debug build
+make local                     # Local /Applications install, Sparkle disabled
 make test                      # Run test targets
 make run                       # Build and launch SpotMenu.app
 make clean                     # Remove local derived data
 make build CONFIGURATION=Release
 ```
+
+Local installs use a local `SpotMenu` code-signing identity and intentionally omit Sparkle feed settings so the installed app does not drift from the published release feed.
 
 ---
 
