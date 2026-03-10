@@ -172,6 +172,17 @@ class PlaybackModel: ObservableObject {
         iconAssetName: "DromosIcon"
     )
 
+    static let bloombergUSStream = StreamStation(
+        id: "bloomberg-tv-us",
+        title: "Bloomberg TV+ US",
+        subtitle: "Live TV",
+        artist: "Bloomberg",
+        url: URL(
+            string: "https://www.bloomberg.com/media-manifest/streams/phoenix-us.m3u8"
+        )!,
+        iconAssetName: nil
+    )
+
     @Published var imageURL: URL?
     @Published var image: Image? = nil
     @Published var isPlaying: Bool = false
@@ -212,7 +223,7 @@ class PlaybackModel: ObservableObject {
     }
 
     var streams: [StreamStation] {
-        [Self.dromosStream]
+        [Self.dromosStream, Self.bloombergUSStream]
     }
 
     var shouldOpenStreamsOnLaunch: Bool {
