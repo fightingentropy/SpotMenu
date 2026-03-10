@@ -180,7 +180,7 @@ class PlaybackModel: ObservableObject {
         url: URL(
             string: "https://www.bloomberg.com/media-manifest/streams/phoenix-us.m3u8"
         )!,
-        iconAssetName: nil
+        iconAssetName: "BloombergIcon"
     )
 
     @Published var imageURL: URL?
